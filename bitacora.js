@@ -37,22 +37,32 @@ function pintarTabla(datos) {
     let htmlCuerpo = '';
     let idxEstado = encabezadosGlobales.indexOf('estado');
     let idxSerial = encabezadosGlobales.indexOf('serial');
+    let idxSerialProv = encabezadosGlobales.indexOf('serial_proveedor');
 
     datos.forEach(fila => {
         let estadoActual = idxEstado > -1 ? fila.data[idxEstado].trim().toUpperCase() : '';
+        let valSerial = idxSerial > -1 ? fila.data[idxSerial].trim() : '';
+        let valSerialProv = idxSerialProv > -1 ? fila.data[idxSerialProv].trim() : '';
         
         htmlCuerpo += `<tr class="fila-dato" data-grupo="${fila.grupo}" data-estado="${estadoActual}">`;
         
         fila.data.forEach((celda, index) => {
             let contenido = celda;
             
+            // Badge para Estado
             if (index === idxEstado) {
                 let claseBadge = celda === 'ASIGNADO' ? 'bg-asignado' : (celda === 'BODEGA' ? 'bg-bodega' : 'bg-default');
                 contenido = `<span class="badge ${claseBadge}">${celda}</span>`;
             }
             
+            // Enlace en Serial Principal
             if (index === idxSerial && celda.trim() !== '') {
-                contenido = `<a href="javascript:void(0)" onclick="verHistorial('${celda}')" style="color: #0D6BB4; font-weight: bold; text-decoration: underline;" title="Ver historial">${celda}</a>`;
+                contenido = `<a href="javascript:void(0)" onclick="verHistorial('${celda}', '${valSerialProv}')" style="color: #0D6BB4; font-weight: bold; text-decoration: underline;" title="Ver historial">${celda}</a>`;
+            }
+
+            // Enlace en Serial Proveedor (AYS / Construsalco)
+            if (index === idxSerialProv && celda.trim() !== '') {
+                contenido = `<a href="javascript:void(0)" onclick="verHistorial('${valSerial}', '${celda}')" style="color: #0D6BB4; font-weight: bold; text-decoration: underline;" title="Ver historial">${celda}</a>`;
             }
             
             htmlCuerpo += `<td>${contenido}</td>`;
@@ -86,9 +96,10 @@ function filtrarTabla() {
     });
 }
 
-async function verHistorial(serialBuscado) {
+async function verHistorial(serialPrincipal, serialProv) {
     try {
-        document.getElementById('historial-serial').innerText = serialBuscado;
+        let tituloMostrar = serialProv ? `${serialPrincipal} (AYS: ${serialProv})` : serialPrincipal;
+        document.getElementById('historial-serial').innerText = tituloMostrar;
         document.getElementById('cuerpo-historial').innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 20px;">Consultando bitácora en la nube... ⏳</td></tr>';
         document.getElementById('modalHistorial').style.display = 'block';
 
@@ -103,7 +114,8 @@ async function verHistorial(serialBuscado) {
             let cols = filas[i].split(',');
             let colSerial = cols[1] ? cols[1].trim() : '';
             
-            if(colSerial === serialBuscado) {
+            // Coincide si en la bitácora se registró el serial de fábrica O el serial AYS
+            if(colSerial === serialPrincipal || (serialProv && colSerial === serialProv)) {
                 hayRegistros = true;
                 htmlHistorial += `<tr style="border-bottom: 1px solid #ddd;">
                     <td style="padding: 10px;">${cols[0] || ''}</td>
@@ -132,11 +144,8 @@ function cerrarHistorial() {
 
 function abrirModal() { 
     document.getElementById('miModal').style.display = 'block'; 
-    
-    // Ponemos por defecto la fecha de HOY en formato YYYY-MM-DD
     const hoy = new Date().toISOString().split('T')[0];
     document.getElementById('m-fecha').value = hoy;
-    
     ajustarFormulario();
 }
 
