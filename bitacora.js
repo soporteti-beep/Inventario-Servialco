@@ -132,6 +132,11 @@ function cerrarHistorial() {
 
 function abrirModal() { 
     document.getElementById('miModal').style.display = 'block'; 
+    
+    // Ponemos por defecto la fecha de HOY en formato YYYY-MM-DD
+    const hoy = new Date().toISOString().split('T')[0];
+    document.getElementById('m-fecha').value = hoy;
+    
     ajustarFormulario();
 }
 
@@ -165,6 +170,9 @@ function ajustarFormulario() {
 
 async function guardarEnGitHub() {
     const serial = document.getElementById('m-serial').value.trim();
+    const fecha = document.getElementById('m-fecha').value;
+
+    if(!fecha) { alert("La fecha es obligatoria."); return; }
     if(!serial) { alert("El Serial es obligatorio."); return; }
 
     let token = localStorage.getItem('gh_token');
@@ -181,12 +189,17 @@ async function guardarEnGitHub() {
     const nuevoProveedor = destinoSeleccionado[0].trim();
     const nuevaEmpresa = destinoSeleccionado[1].trim();
 
-    const f = new Date().toISOString().split('T')[0];
     const data = [
-        f, serial, document.getElementById('m-evento').value,
-        document.getElementById('m-resp').value, document.getElementById('m-area').value,
-        document.getElementById('m-cargo').value, document.getElementById('m-ubic').value,
-        document.getElementById('m-estado').value, nuevoProveedor, nuevaEmpresa,
+        fecha, 
+        serial, 
+        document.getElementById('m-evento').value,
+        document.getElementById('m-resp').value, 
+        document.getElementById('m-area').value,
+        document.getElementById('m-cargo').value, 
+        document.getElementById('m-ubic').value,
+        document.getElementById('m-estado').value, 
+        nuevoProveedor, 
+        nuevaEmpresa,
         document.getElementById('m-obs').value
     ].map(val => val.replace(/,/g, '')); 
 
@@ -207,7 +220,7 @@ async function guardarEnGitHub() {
             method: 'PUT',
             headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                message: `🚀 Actualización vía Web: ${serial}`,
+                message: `🚀 Actualización vía Web: ${serial} (${fecha})`,
                 content: contenidoCodificado,
                 sha: fileData.sha
             })
