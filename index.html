@@ -5,9 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventario TI - Servialco</title>
     <style>
-        /* ==========================================
-           1. ESTILOS CSS (DISEÑO)
-        ========================================== */
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
         .header { display: flex; align-items: center; justify-content: space-between; background-color: #0D6BB4; color: white; padding: 15px 30px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .header-left { display: flex; align-items: center; }
@@ -51,9 +48,6 @@
 </head>
 <body>
 
-    <!-- ==========================================
-         2. ESTRUCTURA HTML (LA PÁGINA)
-    ========================================== -->
     <div class="header">
         <div class="header-left">
             <img src="logo-servialco.png" alt="Logo Servialco" onerror="this.style.display='none'">
@@ -173,7 +167,7 @@
     </div>
 
     <!-- ==========================================
-         3. SCRIPT JAVASCRIPT (LÓGICA)
+         SCRIPT JAVASCRIPT (LÓGICA UNIFICADA)
     ========================================== -->
     <script>
         const GITHUB_USER = 'soporteti-beep';
@@ -186,7 +180,6 @@
 
         async function cargarInventario() {
             try {
-                // El timestamp evita que el navegador guarde la caché antigua
                 const response = await fetch('inventario.csv?' + new Date().getTime()); 
                 const data = await response.text();
                 const filas = data.split('\n').filter(row => row.trim().length > 0);
@@ -196,7 +189,7 @@
                 
                 let htmlCabecera = '';
                 encabezadosGlobales.forEach((h, index) => {
-                    if (h === 'serial') return; // Ocultar
+                    if (h === 'serial') return; 
                     let nombreMostrar = h.toUpperCase().replace(/_/g, ' ');
                     if (h === 'serial_proveedor') nombreMostrar = 'SERIAL AYS'; 
                     htmlCabecera += `<th>${nombreMostrar}</th>`;
@@ -219,7 +212,8 @@
                 const tabsContainer = document.getElementById('tabs-container');
                 tabsContainer.innerHTML = `<button class="tab-btn active" onclick="filtrarPorPestana('TODOS', this)">TODOS LOS EQUIPOS Y MONITORES</button>`;
                 
-                gruposUnicos.forEach(grupo => {
+                // Ordenar alfabéticamente las pestañas para que se vean mejor
+                Array.from(gruposUnicos).sort().forEach(grupo => {
                     if(grupo !== " - ") tabsContainer.innerHTML += `<button class="tab-btn" onclick="filtrarPorPestana('${grupo}', this)">${grupo}</button>`;
                 });
                 pintarTabla(datosGlobales);
