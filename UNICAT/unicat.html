@@ -26,7 +26,7 @@
         input[type="text"].buscador:focus { border-color: #0D6BB4; }
         select.filtro-estado { padding: 12px; font-size: 16px; border: 2px solid #A8D5E8; border-radius: 6px; outline: none; cursor: pointer; font-weight: bold; color: #333;}
         
-        .titulo-seccion { background-color: #e2f0f7; color: #0D6BB4; padding: 10px 20px; margin: 20px 0 10px 0; border-radius: 6px; font-size: 18px; border-left: 5px solid #0D6BB4; }
+        .titulo-seccion { background-color: #e2f0f7; color: #0D6BB4; padding: 10px 20px; margin: 20px 0 10px 0; border-radius: 6px; font-size: 18px; border-left: 5px solid #0D6BB4; display: flex; align-items: center; gap: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);}
         
         table { width: 100%; border-collapse: collapse; background: white; border-radius: 0 8px 8px 8px; overflow: hidden; font-size: 13px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);}
         th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #ddd; }
@@ -52,18 +52,19 @@
 </head>
 <body>
 
-    <!-- MENÚ DE NAVEGACIÓN DE MÓDULOS -->
+    <!-- MENÚ DE NAVEGACIÓN CORREGIDO (Usa ../ para navegar entre carpetas) -->
     <div class="nav-modules">
-        <a href="index.html">📋 Todos los Equipos</a>
-        <a href="servialco.html">🏢 PROPIO - SERVIALCO</a>
-        <a href="ays.html">🏢 AYS</a>
+        <a href="../index.html">📋 Todos los Equipos</a>
+        <a href="../Servialco/servialco.html">🏢 PROPIO - SERVIALCO</a>
+        <a href="../AYS-Servialco/AYS-Servialco.html">🏢 AYS</a>
         <a href="unicat.html" class="active">🏢 UNICAT</a>
-        <a href="arky.html">🏢 ARKY</a>
+        <a href="../ARKY/arky.html">🏢 ARKY</a>
     </div>
 
     <div class="header">
         <div class="header-left">
-            <img src="logo-servialco.png" alt="Logo Servialco" onerror="this.style.display='none'">
+            <!-- RUTA DEL LOGO ACTUALIZADA (Sale a la raíz ../) -->
+            <img src="../logo-servialco.png" alt="Logo Servialco" onerror="this.style.display='none'">
             <h1>Módulo: Equipos Alquilados (UNICAT)</h1>
         </div>
         <button class="btn-accion" onclick="abrirModal()">+ Actualizar Bitácora (UNICAT)</button>
@@ -80,29 +81,40 @@
         </select>
     </div>
 
-    <!-- SECCIÓN: COMPUTADORES -->
-    <div id="sec-computadores">
-        <h2 class="titulo-seccion">💻 Computadores (Portátiles y Escritorio)</h2>
+    <!-- SECCIÓN: PORTÁTILES -->
+    <div id="sec-portatiles" style="display:none;">
+        <h2 class="titulo-seccion">💻 Equipos Portátiles</h2>
         <div style="overflow-x:auto; margin-bottom: 30px;">
-            <table id="tabla-computadores">
+            <table>
                 <thead><tr class="filas-cabecera"></tr></thead>
-                <tbody id="cuerpo-computadores"></tbody>
+                <tbody id="cuerpo-portatiles"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- SECCIÓN: ESCRITORIOS -->
+    <div id="sec-escritorios" style="display:none;">
+        <h2 class="titulo-seccion">🖥️ Equipos de Escritorio y Torres</h2>
+        <div style="overflow-x:auto; margin-bottom: 30px;">
+            <table>
+                <thead><tr class="filas-cabecera"></tr></thead>
+                <tbody id="cuerpo-escritorios"></tbody>
             </table>
         </div>
     </div>
 
     <!-- SECCIÓN: MONITORES -->
-    <div id="sec-monitores">
+    <div id="sec-monitores" style="display:none;">
         <h2 class="titulo-seccion">📺 Monitores (Alquilados UNICAT)</h2>
         <div style="overflow-x:auto; margin-bottom: 30px;">
-            <table id="tabla-monitores">
+            <table>
                 <thead><tr class="filas-cabecera"></tr></thead>
                 <tbody id="cuerpo-monitores"></tbody>
             </table>
         </div>
     </div>
 
-    <!-- MODAL BITÁCORA (Personalizado para UNICAT) -->
+    <!-- MODAL BITÁCORA -->
     <div id="miModal" class="modal">
         <div class="modal-content" style="width: 50%; max-width: 650px;">
             <div class="modal-header">Registrar Evento (Solo Activos UNICAT)</div>
@@ -145,7 +157,6 @@
                         <option value="SOPORTE">EN SOPORTE</option>
                     </select>
                 </div>
-                <!-- CAMPO EMPRESA ELIMINADO. Se fuerza por código a UNICAT -->
             </div>
             <div class="form-group" style="margin-top:15px; width:100%;">
                 <label>Observaciones</label>
@@ -192,7 +203,8 @@
 
         async function cargarInventario() {
             try {
-                const response = await fetch('inventario.csv?' + new Date().getTime()); 
+                // RUTA: unicat.csv está en la misma carpeta que unicat.html, no usa ../
+                const response = await fetch('unicat.csv?' + new Date().getTime()); 
                 const data = await response.text();
                 const filas = data.split('\n').filter(row => row.trim().length > 0);
                 if(filas.length === 0) return;
@@ -200,47 +212,50 @@
                 const separador = filas[0].includes(';') ? ';' : ',';
                 encabezadosGlobales = filas[0].split(separador);
                 
-                // 1. Armar cabecera (Omitimos serial_proveedor porque UNICAT usa el serial principal)
                 let htmlCabecera = '';
                 encabezadosGlobales.forEach((h) => {
-                    if (h === 'serial_proveedor') return; 
+                    if (h === 'serial_proveedor') return; // Oculto porque usan serial de fábrica
                     let nombreMostrar = h.toUpperCase().replace(/_/g, ' ');
                     htmlCabecera += `<th>${nombreMostrar}</th>`;
                 });
                 
                 document.querySelectorAll('.filas-cabecera').forEach(el => el.innerHTML = htmlCabecera);
 
-                // 2. Extraer SOLO datos de UNICAT
                 let datosModulo = [];
                 for (let i = 1; i < filas.length; i++) {
                     const columnas = filas[i].split(separador);
-                    const proveedor = columnas[5] ? columnas[5].trim().toUpperCase() : '';
-                    
-                    if (proveedor === 'UNICAT') {
-                        datosModulo.push(columnas);
-                    }
+                    datosModulo.push({ data: columnas });
                 }
+                
                 pintarTablas(datosModulo);
+                filtrarTabla();
             } catch (e) { console.error("Error cargando base de datos", e); }
         }
 
         function pintarTablas(datos) {
-            let htmlComps = '';
-            let htmlMons = '';
+            let htmlPortatiles = '';
+            let htmlEscritorios = '';
+            let htmlMonitores = '';
 
             let idxEstado = encabezadosGlobales.indexOf('estado');
             let idxSerial = encabezadosGlobales.indexOf('serial');
             let idxTipo = encabezadosGlobales.indexOf('tipo');
 
-            datos.forEach(celdas => {
+            datos.forEach(fila => {
+                let celdas = fila.data;
                 let estadoActual = idxEstado > -1 && celdas[idxEstado] ? celdas[idxEstado].trim().toUpperCase() : '';
                 let valSerial = idxSerial > -1 && celdas[idxSerial] ? celdas[idxSerial].trim() : '';
                 let tipoVal = idxTipo > -1 && celdas[idxTipo] ? celdas[idxTipo].trim().toUpperCase() : '';
 
-                let filaHtml = `<tr class="fila-dato" data-estado="${estadoActual}">`;
+                let claseFila = 'fila-otros';
+                if (tipoVal.includes('PORTATIL')) claseFila = 'fila-portatil';
+                else if (tipoVal.includes('ESCRITORIO') || tipoVal.includes('TORRE') || tipoVal.includes('CPU') || tipoVal.includes('COMPUTADOR')) claseFila = 'fila-escritorio';
+                else if (tipoVal.includes('MONITOR') || tipoVal.includes('PANTALLA')) claseFila = 'fila-monitor';
+
+                let filaHtml = `<tr class="fila-dato ${claseFila}" data-estado="${estadoActual}">`;
                 
                 celdas.forEach((celda, index) => {
-                    if (encabezadosGlobales[index] === 'serial_proveedor') return; // Oculto
+                    if (encabezadosGlobales[index] === 'serial_proveedor') return;
 
                     let contenido = celda || '';
                     if (index === idxEstado) {
@@ -249,40 +264,47 @@
                         contenido = `<span class="badge ${claseBadge}">${contenido}</span>`;
                     }
                     
-                    // El serial principal contiene el enlace al historial
                     if (index === idxSerial) {
-                        contenido = `<a href="javascript:void(0)" onclick="verHistorial('${valSerial}')" style="color: #0D6BB4; font-weight: bold; text-decoration: underline;" title="Ver historial">${valSerial}</a>`;
+                        contenido = `<a href="javascript:void(0)" onclick="verHistorial('${valSerial}')" style="color: #0D6BB4; font-weight: bold; text-decoration: underline;">${valSerial}</a>`;
                     }
                     
                     filaHtml += `<td>${contenido}</td>`;
                 });
                 filaHtml += '</tr>';
 
-                // Agrupar en la tabla correspondiente
-                if (tipoVal.includes('MONITOR')) {
-                    htmlMons += filaHtml;
-                } else {
-                    htmlComps += filaHtml;
-                }
+                if (claseFila === 'fila-portatil') htmlPortatiles += filaHtml;
+                else if (claseFila === 'fila-escritorio') htmlEscritorios += filaHtml;
+                else if (claseFila === 'fila-monitor') htmlMonitores += filaHtml;
             });
 
-            document.getElementById('cuerpo-computadores').innerHTML = htmlComps;
-            document.getElementById('cuerpo-monitores').innerHTML = htmlMons;
-            
-            // Ocultar sección si está vacía
-            document.getElementById('sec-computadores').style.display = htmlComps ? 'block' : 'none';
-            document.getElementById('sec-monitores').style.display = htmlMons ? 'block' : 'none';
+            document.getElementById('cuerpo-portatiles').innerHTML = htmlPortatiles;
+            document.getElementById('cuerpo-escritorios').innerHTML = htmlEscritorios;
+            document.getElementById('cuerpo-monitores').innerHTML = htmlMonitores;
         }
 
         function filtrarTabla() {
             let filtroGlobal = document.getElementById("buscador").value.toUpperCase();
             let filtroEstado = document.getElementById("filtro-estado").value.toUpperCase();
 
+            let countP = 0, countE = 0, countM = 0;
+
             document.querySelectorAll('.fila-dato').forEach(fila => {
                 let coincideEstado = (filtroEstado === "" || fila.getAttribute('data-estado') === filtroEstado);
                 let coincideGlobal = fila.innerText.toUpperCase().includes(filtroGlobal);
-                fila.style.display = (coincideEstado && coincideGlobal) ? "" : "none";
+                
+                if (coincideEstado && coincideGlobal) {
+                    fila.style.display = "";
+                    if (fila.classList.contains('fila-portatil')) countP++;
+                    else if (fila.classList.contains('fila-escritorio')) countE++;
+                    else if (fila.classList.contains('fila-monitor')) countM++;
+                } else {
+                    fila.style.display = "none";
+                }
             });
+
+            document.getElementById('sec-portatiles').style.display = countP > 0 ? 'block' : 'none';
+            document.getElementById('sec-escritorios').style.display = countE > 0 ? 'block' : 'none';
+            document.getElementById('sec-monitores').style.display = countM > 0 ? 'block' : 'none';
         }
 
         function abrirModal() { 
@@ -306,7 +328,7 @@
             
             if (evento === 'CREACION_NUEVO') {
                 grupoTipo.style.display = 'block';
-                estado.value = 'BODEGA'; // Por defecto entran a bodega
+                estado.value = 'BODEGA';
             } else {
                 grupoTipo.style.display = 'none';
             }
@@ -331,7 +353,8 @@
                 document.getElementById('cuerpo-historial').innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 20px;">Consultando bitácora... ⏳</td></tr>';
                 document.getElementById('modalHistorial').style.display = 'block';
 
-                const response = await fetch('bitacora.csv?' + new Date().getTime());
+                // RUTA ACTUALIZADA HACIA LA RAÍZ (../)
+                const response = await fetch('../bitacora.csv?' + new Date().getTime());
                 const data = await response.text();
                 const filas = data.split('\n').filter(row => row.trim().length > 0);
                 
@@ -389,6 +412,7 @@
             ].map(val => val.replace(/,/g, '')); 
 
             try {
+                // RUTA DE LA API (Sigue intacta)
                 const getRes = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/bitacora.csv`, { headers: { 'Authorization': `token ${token}` }});
                 if (!getRes.ok) throw new Error("Fallo de autenticación. Verifica tu Token.");
                 
