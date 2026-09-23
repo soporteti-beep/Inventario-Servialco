@@ -3,63 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventario TI - GitOps Central</title>
+    <title>Visor Global de Inventario - Servialco</title>
+    <link rel="stylesheet" href="css/style.css">
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
-        
-        /* Navegación entre módulos */
-        .nav-modules { display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .nav-modules a { text-decoration: none; padding: 10px 20px; border-radius: 5px; color: #555; font-weight: bold; background: #e9ecef; transition: 0.3s; white-space: nowrap; }
-        .nav-modules a:hover { background: #34495E; color: white; }
-        .nav-modules a.active { background: #34495E; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-
-        .header { display: flex; align-items: center; justify-content: space-between; background-color: #34495E; color: white; padding: 15px 30px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .header-left { display: flex; align-items: center; }
-        .header img { height: 50px; margin-right: 20px; background-color: white; padding: 5px; border-radius: 4px; }
-        .header h1 { margin: 0; font-size: 24px; }
-        
-        .btn-accion { background-color: #f4f7f6; color: #34495E; border: 2px solid white; padding: 10px 20px; border-radius: 5px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.2);}
-        .btn-accion:hover { background-color: #eaeded; }
-
-        .search-container { display: flex; gap: 15px; margin-bottom: 20px; }
-        input[type="text"].buscador { flex-grow: 1; padding: 12px; font-size: 16px; border: 2px solid #aeb6bf; border-radius: 6px; outline: none; }
-        input[type="text"].buscador:focus { border-color: #34495E; }
-        select.filtro-estado { padding: 12px; font-size: 16px; border: 2px solid #aeb6bf; border-radius: 6px; outline: none; cursor: pointer; font-weight: bold; color: #333;}
-        
-        .tabs { display: flex; gap: 5px; margin-bottom: 10px; overflow-x: auto; padding-bottom: 5px; }
-        .tab-btn { background-color: #e0e0e0; border: none; padding: 10px 20px; cursor: pointer; border-radius: 8px 8px 0 0; font-weight: bold; color: #333; transition: 0.3s; white-space: nowrap; }
-        .tab-btn:hover { background-color: #aeb6bf; }
-        .tab-btn.active { background-color: #34495E; color: white; }
-
-        .titulo-seccion { background-color: #eaeded; color: #2c3e50; padding: 10px 20px; margin: 20px 0 10px 0; border-radius: 6px; font-size: 18px; border-left: 5px solid #34495E; display: flex; align-items: center; gap: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);}
-        
-        table { width: 100%; border-collapse: collapse; background: white; border-radius: 0 8px 8px 8px; overflow: hidden; font-size: 13px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);}
-        th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #ddd; }
-        th { background-color: #34495E; color: white; font-weight: bold; position: sticky; top: 0; white-space: nowrap; z-index: 2;}
-        tr:nth-child(even) { background-color: #f8f9f9; }
-        tr:hover { background-color: #ebedef; }
-        .badge { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; color: white; display: inline-block;}
-        .bg-asignado { background-color: #1B9B59; } .bg-bodega { background-color: #70C457; } .bg-default { background-color: #666; }
-
-        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
-        .modal-content { background-color: #fff; margin: 5% auto; padding: 25px; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
-        .modal-header { font-size: 20px; font-weight: bold; color: #34495E; margin-bottom: 15px; border-bottom: 2px solid #aeb6bf; padding-bottom: 10px;}
-        .modal-footer { margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px; }
-        .btn-cancelar { background-color: #ccc; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold;}
-        .btn-guardar { background-color: #34495E; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold;}
-        
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .form-group { display: flex; flex-direction: column; }
-        .form-group label { font-size: 12px; font-weight: bold; color: #555; margin-bottom: 5px; }
-        .form-group input, .form-group select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; outline: none; }
+        :root { --tema-color: #34495E; }
     </style>
 </head>
 <body>
 
-    <!-- MENÚ DE NAVEGACIÓN -->
+    <!-- MENÚ DE NAVEGACIÓN ENTRE MÓDULOS -->
     <div class="nav-modules">
         <a href="index.html" class="active">📋 Todos los Equipos</a>
-        <a href="Servialco/servialco.html">🏢 PROPIO - SERVIALCO</a>
+        <a href="Servialco/servialco.html">🏢 SERVIALCO</a>
         <a href="AYS-Servialco/ays-servialco.html">🏢 AYS</a>
         <a href="UNICAT/unicat.html">🏢 UNICAT</a>
         <a href="ARKY/arky.html">🏢 ARKY</a>
@@ -67,12 +22,12 @@
 
     <div class="header">
         <div class="header-left">
-            <img src="logo-servialco.png" alt="Logo Servialco" onerror="this.style.display='none'">
-            <h1>Visor Global de Inventario (Integrado)</h1>
+            <img src="logo-servialco.png" alt="Logo" onerror="this.style.display='none'">
+            <h1>Visor Global de Inventario (Consulta Unificada)</h1>
         </div>
-        <button class="btn-accion" onclick="abrirModal()">+ Actualizar Bitácora Global</button>
     </div>
 
+    <!-- FILTROS Y BÚSQUEDA -->
     <div class="search-container">
         <input type="text" id="buscador" class="buscador" onkeyup="filtrarTabla()" placeholder="Buscar equipo, monitor, serial o responsable...">
         <select id="filtro-estado" class="filtro-estado" onchange="filtrarTabla()">
@@ -86,29 +41,20 @@
 
     <div class="tabs" id="tabs-container"></div>
 
-    <div id="sec-portatiles" style="display:none;">
-        <h2 class="titulo-seccion">💻 Equipos Portátiles</h2>
-        <div style="overflow-x:auto; margin-bottom: 30px;">
+    <!-- TABLAS DE CONSULTA -->
+    <div id="sec-computadores" style="display:none;">
+        <h2 class="titulo-seccion">💻 Computadores (Portátiles y Escritorio)</h2>
+        <div style="overflow-x:auto;">
             <table>
                 <thead><tr class="filas-cabecera"></tr></thead>
-                <tbody id="cuerpo-portatiles"></tbody>
-            </table>
-        </div>
-    </div>
-
-    <div id="sec-escritorios" style="display:none;">
-        <h2 class="titulo-seccion">🖥️ Equipos de Escritorio y Torres</h2>
-        <div style="overflow-x:auto; margin-bottom: 30px;">
-            <table>
-                <thead><tr class="filas-cabecera"></tr></thead>
-                <tbody id="cuerpo-escritorios"></tbody>
+                <tbody id="cuerpo-computadores"></tbody>
             </table>
         </div>
     </div>
 
     <div id="sec-monitores" style="display:none;">
         <h2 class="titulo-seccion">📺 Monitores (Todos los Proveedores)</h2>
-        <div style="overflow-x:auto; margin-bottom: 30px;">
+        <div style="overflow-x:auto;">
             <table>
                 <thead><tr class="filas-cabecera"></tr></thead>
                 <tbody id="cuerpo-monitores"></tbody>
@@ -116,103 +62,36 @@
         </div>
     </div>
 
-    <!-- MODAL BITÁCORA UNIVERSAL -->
-    <div id="miModal" class="modal">
-        <div class="modal-content" style="width: 50%; max-width: 650px;">
-            <div class="modal-header">Registrar Evento Global</div>
-            <div class="form-grid">
-                <div class="form-group">
-                    <label>Fecha del Evento*</label>
-                    <input type="date" id="m-fecha" required>
-                </div>
-                <div class="form-group">
-                    <label>Serial del Activo (Llave)*</label>
-                    <input type="text" id="m-serial" placeholder="Ej: 5CG416681G..." required>
-                </div>
-                <div class="form-group">
-                    <label>Tipo de Evento*</label>
-                    <select id="m-evento" onchange="ajustarFormulario()">
-                        <option value="CAMBIO_USUARIO">Cambio de Responsable</option>
-                        <option value="CREACION_NUEVO">Ingreso Activo Nuevo</option>
-                        <option value="DEVOLUCION_PROVEEDOR">Devolución Proveedor</option>
-                        <option value="REPARACION">Reparación/Soporte</option>
-                    </select>
-                </div>
-                <div class="form-group" id="grupo-tipo-activo" style="display: none;">
-                     <label>Tipo de Activo (Solo Nuevos)*</label>
-                     <select id="m-tipo">
-                         <option value="PORTATIL">Computador Portátil</option>
-                         <option value="ESCRITORIO">Computador de Escritorio / Torre</option>
-                         <option value="MONITOR">Monitor Independiente</option>
-                     </select>
-                </div>
-                <div class="form-group"><label>Nuevo Responsable</label><input type="text" id="m-resp" placeholder="Nombre o 'N/A'"></div>
-                <div class="form-group"><label>Nueva Área</label><input type="text" id="m-area"></div>
-                <div class="form-group"><label>Nuevo Cargo</label><input type="text" id="m-cargo"></div>
-                <div class="form-group"><label>Nueva Ubicación</label><input type="text" id="m-ubic"></div>
-                <div class="form-group">
-                    <label>Nuevo Estado</label>
-                    <select id="m-estado">
-                        <option value="ASIGNADO">ASIGNADO</option>
-                        <option value="BODEGA">BODEGA</option>
-                        <option value="DEVUELTO">DEVUELTO PROVEEDOR</option>
-                        <option value="SOPORTE">EN SOPORTE</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Empresa y Proveedor Destino*</label>
-                    <select id="m-empresa">
-                        <option value="PROPIO,SERVIALCO">PROPIO - SERVIALCO</option>
-                        <option value="AYS,CONSTRUSALCO">AYS - CONSTRUSALCO</option>
-                        <option value="AYS,SERVIALCO">AYS - SERVIALCO</option>
-                        <option value="UNICAT,UNICAT">UNICAT - UNICAT</option>
-                        <option value="ARKY,ARKY">ARKY - ARKY</option>
-                    </select>
-                </div>
-            </div>
-            <div class="form-group" style="margin-top:15px; width:100%;">
-                <label>Observaciones</label>
-                <input type="text" id="m-obs" placeholder="Motivo del evento...">
-            </div>
-            <div class="modal-footer">
-                <button class="btn-cancelar" onclick="cerrarModal()">Cancelar</button>
-                <button class="btn-guardar" onclick="guardarEnGitHub()">💾 Guardar Evento Global</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL HISTORIAL -->
+    <!-- MODAL DE CONSULTA DE HISTORIAL -->
     <div id="modalHistorial" class="modal">
-        <div class="modal-content" style="width: 80%; max-width: 900px;">
-            <div class="modal-header">Trazabilidad del Activo: <span id="historial-serial" style="color:#34495E;"></span></div>
-            <div style="overflow-x:auto; max-height: 400px; overflow-y: auto;">
-                <table style="width: 100%; border-collapse: collapse;">
+        <div class="modal-content" style="width: 80%;">
+            <div class="modal-header">Trazabilidad del Activo: <span id="historial-serial"></span></div>
+            <div style="overflow-x:auto; max-height: 350px;">
+                <table style="width:100%;">
                     <thead>
                         <tr>
-                            <th style="background-color:#eaeded; color:#333;">Fecha</th>
-                            <th style="background-color:#eaeded; color:#333;">Evento</th>
-                            <th style="background-color:#eaeded; color:#333;">Responsable</th>
-                            <th style="background-color:#eaeded; color:#333;">Ubicación</th>
-                            <th style="background-color:#eaeded; color:#333;">Estado</th>
-                            <th style="background-color:#eaeded; color:#333;">Observaciones</th>
+                            <th>Fecha</th>
+                            <th>Evento</th>
+                            <th>Responsable</th>
+                            <th>Ubicación</th>
+                            <th>Estado</th>
+                            <th>Observaciones</th>
                         </tr>
                     </thead>
                     <tbody id="cuerpo-historial"></tbody>
                 </table>
             </div>
             <div class="modal-footer">
-                <button class="btn-cancelar" onclick="cerrarHistorial()">Cerrar Historial</button>
+                <button class="btn-cancelar" onclick="cerrarHistorial()">Cerrar</button>
             </div>
         </div>
     </div>
 
     <script>
-        const GITHUB_USER = 'soporteti-beep';
-        const GITHUB_REPO = 'Inventario-Servialco';
         let encabezadosGlobales = [];
         let datosGlobales = [];
 
-        // Archivos CSV individuales a consumir
+        // Rutas a los CSV de todos los módulos
         const ARCHIVOS_CSV = [
             'Servialco/servialco.csv',
             'AYS-Servialco/ays-servialco.csv',
@@ -228,7 +107,6 @@
                 let gruposUnicos = new Set();
                 let cabeceraEstablecida = false;
 
-                // Carga dinámica de todos los archivos CSV en paralelo
                 const timestamp = new Date().getTime();
                 const respuestas = await Promise.all(
                     ARCHIVOS_CSV.map(url => fetch(`${url}?${timestamp}`).then(r => r.ok ? r.text() : ''))
@@ -276,9 +154,8 @@
         }
 
         function pintarTablas(datos) {
-            let htmlPortatiles = '';
-            let htmlEscritorios = '';
-            let htmlMonitores = '';
+            let htmlComps = '';
+            let htmlMons = '';
 
             let idxEstado = encabezadosGlobales.indexOf('estado');
             let idxSerialOrig = encabezadosGlobales.indexOf('serial');
@@ -292,37 +169,31 @@
                 let valSerialProv = idxSerialProv > -1 && celdas[idxSerialProv] ? celdas[idxSerialProv].trim() : '';
                 let tipoVal = idxTipo > -1 && celdas[idxTipo] ? celdas[idxTipo].trim().toUpperCase() : '';
 
-                let claseFila = 'fila-otros';
-                if (tipoVal.includes('PORTATIL')) claseFila = 'fila-portatil';
-                else if (tipoVal.includes('ESCRITORIO') || tipoVal.includes('TORRE') || tipoVal.includes('CPU') || tipoVal.includes('COMPUTADOR')) claseFila = 'fila-escritorio';
-                else if (tipoVal.includes('MONITOR') || tipoVal.includes('PANTALLA')) claseFila = 'fila-monitor';
+                let esMonitor = tipoVal.includes('MONITOR') || tipoVal.includes('PANTALLA');
 
-                let filaHtml = `<tr class="fila-dato ${claseFila}" data-grupo="${fila.grupo}" data-estado="${estadoActual}">`;
+                let filaHtml = `<tr class="fila-dato ${esMonitor ? 'fila-monitor' : 'fila-comp'}" data-grupo="${fila.grupo}" data-estado="${estadoActual}">`;
                 
                 celdas.forEach((celda, index) => {
                     let contenido = celda || '';
                     if (index === idxEstado) {
-                        let claseBadge = contenido === 'ASIGNADO' ? 'bg-asignado' : (contenido === 'BODEGA' ? 'bg-bodega' : (contenido === 'DEVUELTO' ? 'bg-default' : 'bg-default'));
-                        if (contenido === 'SOPORTE') claseBadge = 'bg-default';
+                        let claseBadge = contenido === 'ASIGNADO' ? 'bg-asignado' : (contenido === 'BODEGA' ? 'bg-bodega' : 'bg-default');
                         contenido = `<span class="badge ${claseBadge}">${contenido}</span>`;
                     }
                     
                     if (index === idxSerialOrig) {
-                        contenido = `<a href="javascript:void(0)" onclick="verHistorial('${valSerialOrig}', '${valSerialProv}')" style="color: #34495E; font-weight: bold; text-decoration: underline;">${valSerialOrig}</a>`;
+                        contenido = `<a href="javascript:void(0)" onclick="verHistorial('${valSerialOrig}', '${valSerialProv}')" style="color: inherit; font-weight: bold; text-decoration: underline;">${valSerialOrig}</a>`;
                     }
                     
                     filaHtml += `<td>${contenido}</td>`;
                 });
                 filaHtml += '</tr>';
 
-                if (claseFila === 'fila-portatil') htmlPortatiles += filaHtml;
-                else if (claseFila === 'fila-escritorio') htmlEscritorios += filaHtml;
-                else if (claseFila === 'fila-monitor') htmlMonitores += filaHtml;
+                if (esMonitor) htmlMons += filaHtml;
+                else htmlComps += filaHtml;
             });
 
-            document.getElementById('cuerpo-portatiles').innerHTML = htmlPortatiles;
-            document.getElementById('cuerpo-escritorios').innerHTML = htmlEscritorios;
-            document.getElementById('cuerpo-monitores').innerHTML = htmlMonitores;
+            document.getElementById('cuerpo-computadores').innerHTML = htmlComps;
+            document.getElementById('cuerpo-monitores').innerHTML = htmlMons;
         }
 
         function filtrarPorPestana(grupo, btn) {
@@ -338,7 +209,7 @@
             let filtroEstado = document.getElementById("filtro-estado").value.toUpperCase();
             let grupoActivo = document.querySelector('.tab-btn.active').innerText;
 
-            let countP = 0, countE = 0, countM = 0;
+            let countC = 0, countM = 0;
 
             document.querySelectorAll('.fila-dato').forEach(fila => {
                 let coincidePestana = (grupoActivo.includes('TODOS') || grupoActivo.includes('GLOBAL') || fila.getAttribute('data-grupo') === grupoActivo);
@@ -347,67 +218,15 @@
                 
                 if (coincidePestana && coincideEstado && coincideGlobal) {
                     fila.style.display = "";
-                    if (fila.classList.contains('fila-portatil')) countP++;
-                    else if (fila.classList.contains('fila-escritorio')) countE++;
+                    if (fila.classList.contains('fila-comp')) countC++;
                     else if (fila.classList.contains('fila-monitor')) countM++;
                 } else {
                     fila.style.display = "none";
                 }
             });
 
-            document.getElementById('sec-portatiles').style.display = countP > 0 ? 'block' : 'none';
-            document.getElementById('sec-escritorios').style.display = countE > 0 ? 'block' : 'none';
+            document.getElementById('sec-computadores').style.display = countC > 0 ? 'block' : 'none';
             document.getElementById('sec-monitores').style.display = countM > 0 ? 'block' : 'none';
-        }
-
-        function abrirModal() { 
-            document.getElementById('miModal').style.display = 'block'; 
-            const hoy = new Date().toISOString().split('T')[0];
-            document.getElementById('m-fecha').value = hoy;
-            ajustarFormulario();
-        }
-
-        function cerrarModal() { document.getElementById('miModal').style.display = 'none'; }
-
-        function ajustarFormulario() {
-            let evento = document.getElementById('m-evento').value;
-            let resp = document.getElementById('m-resp');
-            let area = document.getElementById('m-area');
-            let cargo = document.getElementById('m-cargo');
-            let estado = document.getElementById('m-estado');
-            let grupoTipo = document.getElementById('grupo-tipo-activo');
-            let empresaSelect = document.getElementById('m-empresa');
-
-            resp.disabled = false; area.disabled = false; cargo.disabled = false;
-            
-            // BLOQUEO LÓGICO: "PROPIO" deshabilitado si el evento es "Devolución Proveedor"
-            Array.from(empresaSelect.options).forEach(opt => {
-                if (opt.value === 'PROPIO,SERVIALCO') {
-                    opt.disabled = (evento === 'DEVOLUCION_PROVEEDOR');
-                }
-            });
-
-            if (empresaSelect.value === 'PROPIO,SERVIALCO' && evento === 'DEVOLUCION_PROVEEDOR') {
-                empresaSelect.value = 'AYS,CONSTRUSALCO';
-            }
-
-            if (evento === 'CREACION_NUEVO') {
-                grupoTipo.style.display = 'block';
-                estado.value = 'BODEGA';
-            } else {
-                grupoTipo.style.display = 'none';
-            }
-
-            if (evento === 'DEVOLUCION_PROVEEDOR') {
-                resp.value = 'PROVEEDOR'; resp.disabled = true;
-                area.value = 'N/A'; area.disabled = true;
-                cargo.value = 'N/A'; cargo.disabled = true;
-                estado.value = 'DEVUELTO';
-            } else if (evento === 'REPARACION') {
-                estado.value = 'SOPORTE';
-            } else if (evento !== 'CREACION_NUEVO') {
-                estado.value = 'ASIGNADO';
-            }
         }
 
         function cerrarHistorial() { document.getElementById('modalHistorial').style.display = 'none'; }
@@ -443,67 +262,9 @@
                         </tr>`;
                     }
                 }
-                if(!hayRegistros) htmlHistorial = '<tr><td colspan="6" style="text-align:center; padding: 20px;">No hay registros en la bitácora.</td></tr>';
+                if(!hayRegistros) htmlHistorial = '<tr><td colspan="6" style="text-align:center; padding: 20px;">No hay registros de trazabilidad.</td></tr>';
                 document.getElementById('cuerpo-historial').innerHTML = htmlHistorial;
             } catch(e) { document.getElementById('cuerpo-historial').innerHTML = '<tr><td colspan="6" style="text-align:center; color:red; padding: 20px;">Error al cargar.</td></tr>'; }
-        }
-
-        async function guardarEnGitHub() {
-            const serial = document.getElementById('m-serial').value.trim();
-            const fecha = document.getElementById('m-fecha').value;
-            const evento = document.getElementById('m-evento').value;
-
-            if(!fecha || !serial) { alert("Fecha y Serial son obligatorios."); return; }
-
-            let token = localStorage.getItem('gh_token');
-            if (!token) {
-                token = prompt('Ingresa tu GitHub Personal Access Token (PAT):');
-                if (!token) return;
-                localStorage.setItem('gh_token', token);
-            }
-
-            document.querySelector('.modal-footer .btn-guardar').innerText = "Guardando... ⏳";
-            
-            const destinoSeleccionado = document.getElementById('m-empresa').value.split(',');
-            const nuevoProveedor = destinoSeleccionado[0].trim();
-            const nuevaEmpresa = destinoSeleccionado[1].trim();
-            const tipoActivo = evento === 'CREACION_NUEVO' ? document.getElementById('m-tipo').value : '';
-
-            const data = [
-                fecha, serial, evento, document.getElementById('m-resp').value, 
-                document.getElementById('m-area').value, document.getElementById('m-cargo').value, 
-                document.getElementById('m-ubic').value, document.getElementById('m-estado').value, 
-                nuevoProveedor, nuevaEmpresa, document.getElementById('m-obs').value, tipoActivo
-            ].map(val => val.replace(/,/g, '')); 
-
-            try {
-                const getRes = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/bitacora.csv`, { headers: { 'Authorization': `token ${token}` }});
-                if (!getRes.ok) throw new Error("Fallo de autenticación. Verifica tu Token.");
-                
-                const fileData = await getRes.json();
-                const contenidoNuevo = decodeURIComponent(escape(atob(fileData.content))) + "\n" + data.join(',');
-
-                const putRes = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/bitacora.csv`, {
-                    method: 'PUT',
-                    headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        message: `🚀 Actualización GLOBAL vía Web: ${serial}`,
-                        content: btoa(unescape(encodeURIComponent(contenidoNuevo))),
-                        sha: fileData.sha
-                    })
-                });
-
-                if (putRes.ok) {
-                    alert('¡Evento registrado exitosamente! Recarga la página en unos segundos.');
-                    cerrarModal();
-                    document.querySelectorAll('input:not([disabled])').forEach(i => i.value = ''); 
-                } else throw new Error("No se pudo guardar.");
-            } catch (error) {
-                alert("Error: " + error.message);
-                localStorage.removeItem('gh_token'); 
-            } finally {
-                document.querySelector('.modal-footer .btn-guardar').innerText = "💾 Guardar Evento Global";
-            }
         }
     </script>
 </body>
