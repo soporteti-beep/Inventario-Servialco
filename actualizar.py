@@ -1,7 +1,6 @@
 import csv
 import datetime
 
-# Nombres de los archivos
 INV_FILE = 'inventario.csv'
 BIT_FILE = 'bitacora.csv'
 
@@ -24,41 +23,48 @@ def main():
         with open(BIT_FILE, mode='r', encoding='utf-8') as f:
             reader = csv.DictReader(f)
             for row in reader:
-                serial = row['serial']
+                serial = row['serial'].strip()
+                if not serial:
+                    continue
                 
-                # Solo procesar si el serial existe en el inventario
-                if serial in inventario:
-                    # Reemplazar valores solo si la celda de la bitácora NO está vacía
-                    if row.get('responsable_nuevo', '').strip():
-                        inventario[serial]['responsable'] = row['responsable_nuevo']
+                # LA MAGIA: Si el serial no existe, el bot crea una nueva fila vacía
+                if serial not in inventario:
+                    inventario[serial] = {k: '' for k in campos_inventario}
+                    inventario[serial]['serial'] = serial
+
+                # Mapeo inteligente de Bitácora -> Inventario
+                mapeo_columnas = {
+                    'responsable_nuevo': 'responsable',
+                    'area_nueva': 'area',
+                    'cargo_nueva': 'cargo',
+                    'ubicacion_nueva': 'ubicacion',
+                    'estado_nuevo': 'estado',
+                    'proveedor_nuevo': 'proveedor',
+                    'empresa_nueva': 'empresa'
+                }
+                
+                # Actualizar dinámicamente
+                for col_bitacora, col_inv in mapeo_columnas.items():
+                    if row.get(col_bitacora, '').strip():
+                        inventario[serial][col_inv] = row[col_bitacora]
                         
-                    if row.get('ubicacion_nueva', '').strip():
-                        inventario[serial]['ubicacion'] = row['ubicacion_nueva']
-                        
-                    if row.get('estado_nuevo', '').strip():
-                        inventario[serial]['estado'] = row['estado_nuevo']
-                        
-                    if row.get('proveedor_nuevo', '').strip():
-                        inventario[serial]['proveedor'] = row['proveedor_nuevo']
-                        
-                    if row.get('observaciones', '').strip():
-                        inventario[serial]['observaciones'] = row['observaciones']
-                    
-                    # El script llena automáticamente la última actualización
-                    fecha_actual = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    inventario[serial]['ultima_actualizacion'] = fecha_actual
+                if row.get('observaciones', '').strip():
+                    inventario[serial]['observaciones'] = row['observaciones']
+                
+                # Sello de tiempo
+                inventario[serial]['ultima_actualizacion'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     except Exception as e:
-        print(f"Error leyendo {BIT_FILE}: {e}")
+        print(f"Error procesando {BIT_FILE}: {e}")
         return
 
-    # 3. Guardar los cambios de vuelta en el inventario
+    # 3. Guardar el inventario actualizado
     try:
         with open(INV_FILE, mode='w', encoding='utf-8', newline='') as f:
             writer = csv.DictWriter(f, fieldnames=campos_inventario)
             writer.writeheader()
             for row in inventario.values():
                 writer.writerow(row)
-        print("Inventario actualizado correctamente.")
+        print("Inventario actualizado y revolucionado correctamente.")
     except Exception as e:
         print(f"Error guardando {INV_FILE}: {e}")
 
