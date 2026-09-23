@@ -82,19 +82,21 @@ function ajustarFormulario() {
     let cargo = document.getElementById('m-cargo');
     let estado = document.getElementById('m-estado');
 
-    if (evento === 'INGRESO_BODEGA') {
-        resp.value = 'BODEGA'; resp.disabled = true;
-        area.value = 'SISTEMAS'; area.disabled = true;
-        cargo.value = 'N/A'; cargo.disabled = true;
-        estado.value = 'BODEGA';
-    } else if (evento === 'DEVOLUCION_PROVEEDOR') {
+    // Desbloquear campos por defecto
+    resp.disabled = false; area.disabled = false; cargo.disabled = false;
+    
+    if (evento === 'DEVOLUCION_PROVEEDOR') {
         resp.value = 'PROVEEDOR'; resp.disabled = true;
         area.value = 'N/A'; area.disabled = true;
         cargo.value = 'N/A'; cargo.disabled = true;
         estado.value = 'DEVUELTO';
+    } else if (evento === 'REPARACION') {
+        estado.value = 'SOPORTE';
     } else {
-        if(resp.disabled) { resp.value = ''; area.value = ''; cargo.value = ''; }
-        resp.disabled = false; area.disabled = false; cargo.disabled = false;
+        // Para CREACION_NUEVO y CAMBIO_USUARIO
+        if(resp.value === 'PROVEEDOR') {
+            resp.value = ''; area.value = ''; cargo.value = '';
+        }
         estado.value = 'ASIGNADO';
     }
 }
@@ -113,12 +115,23 @@ async function guardarEnGitHub() {
     const botonOriginal = document.querySelector('.modal-footer .btn-accion').innerText;
     document.querySelector('.modal-footer .btn-accion').innerText = "Guardando... ⏳";
 
+    // Extraer proveedor y empresa de la selección combinada (Ej: "AYS,CONSTRUSALCO")
+    const destinoSeleccionado = document.getElementById('m-empresa').value.split(',');
+    const nuevoProveedor = destinoSeleccionado[0];
+    const nuevaEmpresa = destinoSeleccionado[1];
+
     const f = new Date().toISOString().split('T')[0];
     const data = [
-        f, serial, document.getElementById('m-evento').value,
-        document.getElementById('m-resp').value, document.getElementById('m-area').value,
-        document.getElementById('m-cargo').value, document.getElementById('m-ubic').value,
-        document.getElementById('m-estado').value, "", document.getElementById('m-empresa').value,
+        f, 
+        serial, 
+        document.getElementById('m-evento').value,
+        document.getElementById('m-resp').value, 
+        document.getElementById('m-area').value,
+        document.getElementById('m-cargo').value, 
+        document.getElementById('m-ubic').value,
+        document.getElementById('m-estado').value, 
+        nuevoProveedor, 
+        nuevaEmpresa,
         document.getElementById('m-obs').value
     ].map(val => val.replace(/,/g, '')); 
 
