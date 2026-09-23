@@ -18,7 +18,6 @@
         input[type="text"] { width: 100%; padding: 12px; font-size: 16px; border: 2px solid #A8D5E8; border-radius: 6px; outline: none; }
         input[type="text"]:focus { border-color: #70C457; }
         
-        /* Pestañas */
         .tabs { display: flex; gap: 5px; margin-bottom: 10px; overflow-x: auto; padding-bottom: 5px; }
         .tab-btn { background-color: #e0e0e0; border: none; padding: 10px 20px; cursor: pointer; border-radius: 8px 8px 0 0; font-weight: bold; color: #333; transition: 0.3s; white-space: nowrap; }
         .tab-btn:hover { background-color: #A8D5E8; }
@@ -32,15 +31,16 @@
         .badge { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; color: white; display: inline-block;}
         .bg-asignado { background-color: #1B9B59; } .bg-bodega { background-color: #70C457; } .bg-default { background-color: #666; }
 
-        /* Estilos del Modal (Ventana Flotante) */
+        /* Modal */
         .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
-        .modal-content { background-color: #fff; margin: 5% auto; padding: 25px; border-radius: 8px; width: 50%; max-width: 600px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .modal-content { background-color: #fff; margin: 5% auto; padding: 25px; border-radius: 8px; width: 50%; max-width: 650px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
         .modal-header { font-size: 20px; font-weight: bold; color: #0D6BB4; margin-bottom: 15px; border-bottom: 2px solid #A8D5E8; padding-bottom: 10px;}
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .form-group { display: flex; flex-direction: column; }
         .form-group label { font-size: 12px; font-weight: bold; color: #555; margin-bottom: 5px; }
         .form-group input, .form-group select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; outline: none; }
         .form-group input:focus, .form-group select:focus { border-color: #0D6BB4; }
+        .form-group input:disabled, .form-group select:disabled { background-color: #e9ecef; cursor: not-allowed; }
         .modal-footer { margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px; }
         .btn-cancelar { background-color: #ccc; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold;}
     </style>
@@ -81,35 +81,41 @@
                 </div>
                 <div class="form-group">
                     <label>Tipo de Evento*</label>
-                    <select id="m-evento">
+                    <select id="m-evento" onchange="ajustarFormulario()">
                         <option value="ASIGNACION">Asignación</option>
                         <option value="CAMBIO_USUARIO">Cambio de Usuario</option>
                         <option value="INGRESO_BODEGA">Ingreso a Bodega</option>
+                        <option value="DEVOLUCION_PROVEEDOR">Devolución a Proveedor</option>
                         <option value="REPARACION">Reparación / Soporte</option>
                         <option value="CREACION_NUEVO">Ingreso Equipo Nuevo</option>
                     </select>
                 </div>
-                <div class="form-group"><label>Nuevo Responsable</label><input type="text" id="m-resp"></div>
-                <div class="form-group"><label>Nueva Área</label><input type="text" id="m-area"></div>
-                <div class="form-group"><label>Nuevo Cargo</label><input type="text" id="m-cargo"></div>
-                <div class="form-group"><label>Nueva Ubicación</label><input type="text" id="m-ubic"></div>
+                <div class="form-group"><label>Nuevo Responsable</label><input type="text" id="m-resp" placeholder="Nombre del usuario"></div>
+                <div class="form-group"><label>Nueva Área</label><input type="text" id="m-area" placeholder="Ej: Operaciones"></div>
+                <div class="form-group"><label>Nuevo Cargo</label><input type="text" id="m-cargo" placeholder="Ej: Coordinador"></div>
+                <div class="form-group"><label>Nueva Ubicación</label><input type="text" id="m-ubic" placeholder="Ej: Sede Principal"></div>
                 <div class="form-group">
                     <label>Nuevo Estado</label>
                     <select id="m-estado">
-                        <option value="">(No cambiar)</option>
                         <option value="ASIGNADO">ASIGNADO</option>
                         <option value="BODEGA">BODEGA</option>
-                        <option value="DE_BAJA">DE BAJA</option>
+                        <option value="DEVUELTO">DEVUELTO PROVEEDOR</option>
+                        <option value="SOPORTE">EN SOPORTE</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Empresa (Pestaña destino)</label>
-                    <input type="text" id="m-empresa" placeholder="Ej: SERVIALCO, CONSTRUSALCO">
+                    <label>Empresa (Pestaña destino)*</label>
+                    <select id="m-empresa">
+                        <option value="SERVIALCO">SERVIALCO SAS</option>
+                        <option value="CONSTRUSALCO">CONSTRUSALCO</option>
+                        <option value="UNICAT">UNICAT</option>
+                        <option value="ARKY">ARKY</option>
+                    </select>
                 </div>
             </div>
             <div class="form-group" style="margin-top:15px; width:100%;">
                 <label>Observaciones</label>
-                <input type="text" id="m-obs" placeholder="Motivo del evento...">
+                <input type="text" id="m-obs" placeholder="Motivo del evento (Ej: Entrega de equipo nuevo)...">
             </div>
             <div class="modal-footer">
                 <button class="btn-cancelar" onclick="cerrarModal()">Cancelar</button>
@@ -119,7 +125,6 @@
     </div>
 
     <script>
-        // CONFIGURACIÓN DE TU REPOSITORIO
         const GITHUB_USER = 'soporteti-beep';
         const GITHUB_REPO = 'Inventario-Servialco';
 
@@ -188,18 +193,43 @@
             });
         }
 
-        // --- LÓGICA DEL MODAL Y GITHUB API ---
-        function abrirModal() { document.getElementById('miModal').style.display = 'block'; }
+        function abrirModal() { 
+            document.getElementById('miModal').style.display = 'block'; 
+            ajustarFormulario();
+        }
         function cerrarModal() { document.getElementById('miModal').style.display = 'none'; }
+
+        function ajustarFormulario() {
+            let evento = document.getElementById('m-evento').value;
+            let resp = document.getElementById('m-resp');
+            let area = document.getElementById('m-area');
+            let cargo = document.getElementById('m-cargo');
+            let estado = document.getElementById('m-estado');
+
+            if (evento === 'INGRESO_BODEGA') {
+                resp.value = 'BODEGA'; resp.disabled = true;
+                area.value = 'SISTEMAS'; area.disabled = true;
+                cargo.value = 'N/A'; cargo.disabled = true;
+                estado.value = 'BODEGA';
+            } else if (evento === 'DEVOLUCION_PROVEEDOR') {
+                resp.value = 'PROVEEDOR'; resp.disabled = true;
+                area.value = 'N/A'; area.disabled = true;
+                cargo.value = 'N/A'; cargo.disabled = true;
+                estado.value = 'DEVUELTO';
+            } else {
+                if(resp.disabled) { resp.value = ''; area.value = ''; cargo.value = ''; }
+                resp.disabled = false; area.disabled = false; cargo.disabled = false;
+                estado.value = 'ASIGNADO';
+            }
+        }
 
         async function guardarEnGitHub() {
             const serial = document.getElementById('m-serial').value.trim();
             if(!serial) { alert("El Serial es obligatorio."); return; }
 
-            // Pedir el Token solo si no está guardado
             let token = localStorage.getItem('gh_token');
             if (!token) {
-                token = prompt('Por ser tu primera vez, ingresa tu GitHub Personal Access Token (PAT):');
+                token = prompt('Eikévo nde GitHub Personal Access Token (PAT):');
                 if (!token) return;
                 localStorage.setItem('gh_token', token);
             }
@@ -207,7 +237,6 @@
             const botonOriginal = document.querySelector('.modal-footer .btn-accion').innerText;
             document.querySelector('.modal-footer .btn-accion').innerText = "Guardando... ⏳";
 
-            // Recolectar datos
             const f = new Date().toISOString().split('T')[0];
             const data = [
                 f, serial, document.getElementById('m-evento').value,
@@ -215,25 +244,21 @@
                 document.getElementById('m-cargo').value, document.getElementById('m-ubic').value,
                 document.getElementById('m-estado').value, "", document.getElementById('m-empresa').value,
                 document.getElementById('m-obs').value
-            ].map(val => val.replace(/,/g, '')); // Quitar comas para no romper el CSV
+            ].map(val => val.replace(/,/g, '')); 
 
             const nuevaLinea = "\n" + data.join(',');
 
             try {
-                // 1. Leer el archivo actual para obtener el SHA
                 const getRes = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/bitacora.csv`, {
                     headers: { 'Authorization': `token ${token}` }
                 });
                 if (!getRes.ok) throw new Error("Fallo de autenticación. Verifica tu Token.");
                 
                 const fileData = await getRes.json();
-                
-                // Decodificar Base64 en español correctamente
                 const contenidoActual = decodeURIComponent(escape(atob(fileData.content)));
                 const contenidoNuevo = contenidoActual + nuevaLinea;
                 const contenidoCodificado = btoa(unescape(encodeURIComponent(contenidoNuevo)));
 
-                // 2. Sobrescribir enviando el nuevo contenido
                 const putRes = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/bitacora.csv`, {
                     method: 'PUT',
                     headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
@@ -247,13 +272,13 @@
                 if (putRes.ok) {
                     alert('¡Evento registrado! El robot de GitHub está actualizando el inventario. Recarga la página en 15 segundos.');
                     cerrarModal();
-                    document.querySelectorAll('input').forEach(i => i.value = ''); // Limpiar inputs
+                    document.querySelectorAll('input:not([disabled])').forEach(i => i.value = ''); 
                 } else {
                     throw new Error("No se pudo guardar el archivo.");
                 }
             } catch (error) {
                 alert("Error: " + error.message);
-                localStorage.removeItem('gh_token'); // Borrar token si falló
+                localStorage.removeItem('gh_token'); 
             } finally {
                 document.querySelector('.modal-footer .btn-accion').innerText = botonOriginal;
             }
