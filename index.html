@@ -3,59 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventario TI - Servialco</title>
+    <title>Inventario TI - GitOps Central</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
-        .header { display: flex; align-items: center; justify-content: space-between; background-color: #0D6BB4; color: white; padding: 15px 30px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        
+        /* Navegación entre módulos */
+        .nav-modules { display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .nav-modules a { text-decoration: none; padding: 10px 20px; border-radius: 5px; color: #555; font-weight: bold; background: #e9ecef; transition: 0.3s; white-space: nowrap; }
+        .nav-modules a:hover { background: #34495E; color: white; }
+        .nav-modules a.active { background: #34495E; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+
+        .header { display: flex; align-items: center; justify-content: space-between; background-color: #34495E; color: white; padding: 15px 30px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .header-left { display: flex; align-items: center; }
         .header img { height: 50px; margin-right: 20px; background-color: white; padding: 5px; border-radius: 4px; }
         .header h1 { margin: 0; font-size: 24px; }
         
-        .btn-accion { background-color: #70C457; color: white; border: none; padding: 10px 20px; border-radius: 5px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.2);}
-        .btn-accion:hover { background-color: #1B9B59; }
+        .btn-accion { background-color: #f4f7f6; color: #34495E; border: 2px solid white; padding: 10px 20px; border-radius: 5px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.2);}
+        .btn-accion:hover { background-color: #eaeded; }
 
         .search-container { display: flex; gap: 15px; margin-bottom: 20px; }
-        input[type="text"].buscador { flex-grow: 1; padding: 12px; font-size: 16px; border: 2px solid #A8D5E8; border-radius: 6px; outline: none; }
-        input[type="text"].buscador:focus { border-color: #70C457; }
-        select.filtro-estado { padding: 12px; font-size: 16px; border: 2px solid #A8D5E8; border-radius: 6px; outline: none; cursor: pointer; font-weight: bold; color: #333;}
+        input[type="text"].buscador { flex-grow: 1; padding: 12px; font-size: 16px; border: 2px solid #aeb6bf; border-radius: 6px; outline: none; }
+        input[type="text"].buscador:focus { border-color: #34495E; }
+        select.filtro-estado { padding: 12px; font-size: 16px; border: 2px solid #aeb6bf; border-radius: 6px; outline: none; cursor: pointer; font-weight: bold; color: #333;}
         
         .tabs { display: flex; gap: 5px; margin-bottom: 10px; overflow-x: auto; padding-bottom: 5px; }
         .tab-btn { background-color: #e0e0e0; border: none; padding: 10px 20px; cursor: pointer; border-radius: 8px 8px 0 0; font-weight: bold; color: #333; transition: 0.3s; white-space: nowrap; }
-        .tab-btn:hover { background-color: #A8D5E8; }
-        .tab-btn.active { background-color: #1B9B59; color: white; }
+        .tab-btn:hover { background-color: #aeb6bf; }
+        .tab-btn.active { background-color: #34495E; color: white; }
 
-        .titulo-seccion { background-color: #A8D5E8; color: #0D6BB4; padding: 10px 20px; margin: 20px 0 10px 0; border-radius: 6px; font-size: 18px; display: flex; align-items: center; gap: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);}
+        .titulo-seccion { background-color: #eaeded; color: #2c3e50; padding: 10px 20px; margin: 20px 0 10px 0; border-radius: 6px; font-size: 18px; border-left: 5px solid #34495E; display: flex; align-items: center; gap: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);}
         
         table { width: 100%; border-collapse: collapse; background: white; border-radius: 0 8px 8px 8px; overflow: hidden; font-size: 13px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);}
         th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #ddd; }
-        th { background-color: #0D6BB4; color: white; font-weight: bold; position: sticky; top: 0; white-space: nowrap; z-index: 2;}
-        tr:nth-child(even) { background-color: #f9fbfb; }
-        tr:hover { background-color: #e2f0f7; }
+        th { background-color: #34495E; color: white; font-weight: bold; position: sticky; top: 0; white-space: nowrap; z-index: 2;}
+        tr:nth-child(even) { background-color: #f8f9f9; }
+        tr:hover { background-color: #ebedef; }
         .badge { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; color: white; display: inline-block;}
         .bg-asignado { background-color: #1B9B59; } .bg-bodega { background-color: #70C457; } .bg-default { background-color: #666; }
 
         .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
         .modal-content { background-color: #fff; margin: 5% auto; padding: 25px; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
-        .modal-header { font-size: 20px; font-weight: bold; color: #0D6BB4; margin-bottom: 15px; border-bottom: 2px solid #A8D5E8; padding-bottom: 10px;}
+        .modal-header { font-size: 20px; font-weight: bold; color: #34495E; margin-bottom: 15px; border-bottom: 2px solid #aeb6bf; padding-bottom: 10px;}
         .modal-footer { margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px; }
         .btn-cancelar { background-color: #ccc; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold;}
+        .btn-guardar { background-color: #34495E; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold;}
         
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .form-group { display: flex; flex-direction: column; }
         .form-group label { font-size: 12px; font-weight: bold; color: #555; margin-bottom: 5px; }
         .form-group input, .form-group select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; outline: none; }
-        .form-group input:focus, .form-group select:focus { border-color: #0D6BB4; }
-        .form-group input:disabled, .form-group select:disabled { background-color: #e9ecef; cursor: not-allowed; }
     </style>
 </head>
 <body>
 
+    <!-- MENÚ DE NAVEGACIÓN MAESTRO (Entra a las carpetas) -->
+    <div class="nav-modules">
+        <a href="index.html" class="active">📋 Todos los Equipos</a>
+        <a href="Servialco/servialco.html">🏢 PROPIO - SERVIALCO</a>
+        <a href="AYS-Servialco/ays-servialco.html">🏢 AYS</a>
+        <a href="UNICAT/unicat.html">🏢 UNICAT</a>
+        <a href="ARKY/arky.html">🏢 ARKY</a>
+    </div>
+
     <div class="header">
         <div class="header-left">
             <img src="logo-servialco.png" alt="Logo Servialco" onerror="this.style.display='none'">
-            <h1>Inventario TI - GitOps</h1>
+            <h1>Visor Global de Inventario (Todos los Activos)</h1>
         </div>
-        <button class="btn-accion" onclick="abrirModal()">+ Actualizar Bitácora</button>
+        <button class="btn-accion" onclick="abrirModal()">+ Actualizar Bitácora Global</button>
     </div>
 
     <div class="search-container">
@@ -71,7 +86,6 @@
 
     <div class="tabs" id="tabs-container"></div>
 
-    <!-- SECCIÓN: PORTÁTILES -->
     <div id="sec-portatiles" style="display:none;">
         <h2 class="titulo-seccion">💻 Equipos Portátiles</h2>
         <div style="overflow-x:auto; margin-bottom: 30px;">
@@ -82,7 +96,6 @@
         </div>
     </div>
 
-    <!-- SECCIÓN: ESCRITORIOS -->
     <div id="sec-escritorios" style="display:none;">
         <h2 class="titulo-seccion">🖥️ Equipos de Escritorio y Torres</h2>
         <div style="overflow-x:auto; margin-bottom: 30px;">
@@ -93,9 +106,8 @@
         </div>
     </div>
 
-    <!-- SECCIÓN: MONITORES -->
     <div id="sec-monitores" style="display:none;">
-        <h2 class="titulo-seccion">📺 Monitores Externos</h2>
+        <h2 class="titulo-seccion">📺 Monitores (Todos los Proveedores)</h2>
         <div style="overflow-x:auto; margin-bottom: 30px;">
             <table>
                 <thead><tr class="filas-cabecera"></tr></thead>
@@ -104,21 +116,10 @@
         </div>
     </div>
 
-    <!-- SECCIÓN: OTROS -->
-    <div id="sec-otros" style="display:none;">
-        <h2 class="titulo-seccion">📦 Otros Activos</h2>
-        <div style="overflow-x:auto; margin-bottom: 30px;">
-            <table>
-                <thead><tr class="filas-cabecera"></tr></thead>
-                <tbody id="cuerpo-otros"></tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- MODAL 1: FORMULARIO BITÁCORA -->
+    <!-- MODAL BITÁCORA UNIVERSAL -->
     <div id="miModal" class="modal">
         <div class="modal-content" style="width: 50%; max-width: 650px;">
-            <div class="modal-header">Registrar Evento en Bitácora</div>
+            <div class="modal-header">Registrar Evento Global</div>
             <div class="form-grid">
                 <div class="form-group">
                     <label>Fecha del Evento*</label>
@@ -126,7 +127,7 @@
                 </div>
                 <div class="form-group">
                     <label>Serial del Activo (Llave)*</label>
-                    <input type="text" id="m-serial" placeholder="Ej: AS27300, 5CG416681G..." required>
+                    <input type="text" id="m-serial" placeholder="Ej: 5CG416681G..." required>
                 </div>
                 <div class="form-group">
                     <label>Tipo de Evento*</label>
@@ -141,7 +142,7 @@
                      <label>Tipo de Activo (Solo Nuevos)*</label>
                      <select id="m-tipo">
                          <option value="PORTATIL">Computador Portátil</option>
-                         <option value="ESCRITORIO">Computador de Escritorio</option>
+                         <option value="ESCRITORIO">Computador de Escritorio / Torre</option>
                          <option value="MONITOR">Monitor Independiente</option>
                      </select>
                 </div>
@@ -158,13 +159,14 @@
                         <option value="SOPORTE">EN SOPORTE</option>
                     </select>
                 </div>
+                <!-- AQUÍ SÍ DEBES ELEGIR EL DESTINO, PORQUE ES EL PANEL GLOBAL -->
                 <div class="form-group">
-                    <label>Empresa (Pestaña destino)*</label>
+                    <label>Empresa y Proveedor Destino*</label>
                     <select id="m-empresa">
-                        <option value="AYS,CONSTRUSALCO">AYS - CONSTRUSALCO</option>
                         <option value="PROPIO,SERVIALCO">PROPIO - SERVIALCO</option>
-                        <option value="UNICAT,UNICAT">UNICAT - UNICAT</option>
+                        <option value="AYS,CONSTRUSALCO">AYS - CONSTRUSALCO</option>
                         <option value="AYS,SERVIALCO">AYS - SERVIALCO</option>
+                        <option value="UNICAT,UNICAT">UNICAT - UNICAT</option>
                         <option value="ARKY,ARKY">ARKY - ARKY</option>
                     </select>
                 </div>
@@ -175,25 +177,25 @@
             </div>
             <div class="modal-footer">
                 <button class="btn-cancelar" onclick="cerrarModal()">Cancelar</button>
-                <button class="btn-accion" onclick="guardarEnGitHub()">💾 Guardar Evento</button>
+                <button class="btn-guardar" onclick="guardarEnGitHub()">💾 Guardar Evento Global</button>
             </div>
         </div>
     </div>
 
-    <!-- MODAL 2: HISTORIAL -->
+    <!-- MODAL HISTORIAL -->
     <div id="modalHistorial" class="modal">
         <div class="modal-content" style="width: 80%; max-width: 900px;">
-            <div class="modal-header">Trazabilidad del Activo: <span id="historial-serial" style="color:#70C457;"></span></div>
+            <div class="modal-header">Trazabilidad del Activo: <span id="historial-serial" style="color:#34495E;"></span></div>
             <div style="overflow-x:auto; max-height: 400px; overflow-y: auto;">
                 <table style="width: 100%; border-collapse: collapse;">
                     <thead>
                         <tr>
-                            <th style="background-color:#A8D5E8; color:#333;">Fecha</th>
-                            <th style="background-color:#A8D5E8; color:#333;">Evento</th>
-                            <th style="background-color:#A8D5E8; color:#333;">Responsable</th>
-                            <th style="background-color:#A8D5E8; color:#333;">Ubicación</th>
-                            <th style="background-color:#A8D5E8; color:#333;">Estado</th>
-                            <th style="background-color:#A8D5E8; color:#333;">Observaciones</th>
+                            <th style="background-color:#eaeded; color:#333;">Fecha</th>
+                            <th style="background-color:#eaeded; color:#333;">Evento</th>
+                            <th style="background-color:#eaeded; color:#333;">Responsable</th>
+                            <th style="background-color:#eaeded; color:#333;">Ubicación</th>
+                            <th style="background-color:#eaeded; color:#333;">Estado</th>
+                            <th style="background-color:#eaeded; color:#333;">Observaciones</th>
                         </tr>
                     </thead>
                     <tbody id="cuerpo-historial"></tbody>
@@ -205,38 +207,31 @@
         </div>
     </div>
 
-    <!-- ==========================================
-         SCRIPT JAVASCRIPT (LÓGICA UNIFICADA Y SEPARACIÓN DE TABLAS)
-    ========================================== -->
     <script>
         const GITHUB_USER = 'soporteti-beep';
         const GITHUB_REPO = 'Inventario-Servialco';
-
-        let datosGlobales = []; 
         let encabezadosGlobales = [];
+        let datosGlobales = [];
 
         window.onload = () => { cargarInventario(); };
 
         async function cargarInventario() {
             try {
-                const response = await fetch('inventario.csv?' + new Date().getTime()); 
+                // RUTA: Está en la raíz, lee el inventario maestro
+                const response = await fetch('inventario_sin_comillas.csv?' + new Date().getTime()); 
                 const data = await response.text();
                 const filas = data.split('\n').filter(row => row.trim().length > 0);
                 if(filas.length === 0) return;
 
-                // DETECCIÓN INTELIGENTE DE SEPARADOR (Evita que la tabla colapse si abriste el CSV en Excel)
                 const separador = filas[0].includes(';') ? ';' : ',';
                 encabezadosGlobales = filas[0].split(separador);
                 
                 let htmlCabecera = '';
-                encabezadosGlobales.forEach((h, index) => {
-                    if (h === 'serial') return; 
+                encabezadosGlobales.forEach((h) => {
                     let nombreMostrar = h.toUpperCase().replace(/_/g, ' ');
-                    if (h === 'serial_proveedor') nombreMostrar = 'SERIAL AYS'; 
                     htmlCabecera += `<th>${nombreMostrar}</th>`;
                 });
                 
-                // Aplicar cabecera a todas las tablas generadas
                 document.querySelectorAll('.filas-cabecera').forEach(el => el.innerHTML = htmlCabecera);
 
                 let gruposUnicos = new Set();
@@ -251,24 +246,23 @@
                     gruposUnicos.add(etiquetaGrupo);
                     datosGlobales.push({ data: columnas, grupo: etiquetaGrupo });
                 }
-
+                
                 const tabsContainer = document.getElementById('tabs-container');
-                tabsContainer.innerHTML = `<button class="tab-btn active" onclick="filtrarPorPestana('TODOS', this)">TODOS LOS EQUIPOS Y MONITORES</button>`;
+                tabsContainer.innerHTML = `<button class="tab-btn active" onclick="filtrarPorPestana('TODOS', this)">VISIÓN GLOBAL</button>`;
                 
                 Array.from(gruposUnicos).sort().forEach(grupo => {
                     if(grupo !== " - ") tabsContainer.innerHTML += `<button class="tab-btn" onclick="filtrarPorPestana('${grupo}', this)">${grupo}</button>`;
                 });
-                
-                pintarTabla(datosGlobales);
-                filtrarTabla(); // Ejecuta filtro inicial para ocultar/mostrar tablas
-            } catch (e) { console.error("Error", e); }
+
+                pintarTablas(datosGlobales);
+                filtrarTabla();
+            } catch (e) { console.error("Error cargando base de datos maestra", e); }
         }
 
-        function pintarTabla(datos) {
+        function pintarTablas(datos) {
             let htmlPortatiles = '';
             let htmlEscritorios = '';
             let htmlMonitores = '';
-            let htmlOtros = '';
 
             let idxEstado = encabezadosGlobales.indexOf('estado');
             let idxSerialOrig = encabezadosGlobales.indexOf('serial');
@@ -276,12 +270,12 @@
             let idxTipo = encabezadosGlobales.indexOf('tipo');
 
             datos.forEach(fila => {
-                let estadoActual = idxEstado > -1 && fila.data[idxEstado] ? fila.data[idxEstado].trim().toUpperCase() : '';
-                let valSerialOrig = idxSerialOrig > -1 && fila.data[idxSerialOrig] ? fila.data[idxSerialOrig].trim() : '';
-                let valSerialProv = idxSerialProv > -1 && fila.data[idxSerialProv] ? fila.data[idxSerialProv].trim() : '';
-                let tipoVal = idxTipo > -1 && fila.data[idxTipo] ? fila.data[idxTipo].trim().toUpperCase() : '';
+                let celdas = fila.data;
+                let estadoActual = idxEstado > -1 && celdas[idxEstado] ? celdas[idxEstado].trim().toUpperCase() : '';
+                let valSerialOrig = idxSerialOrig > -1 && celdas[idxSerialOrig] ? celdas[idxSerialOrig].trim() : '';
+                let valSerialProv = idxSerialProv > -1 && celdas[idxSerialProv] ? celdas[idxSerialProv].trim() : '';
+                let tipoVal = idxTipo > -1 && celdas[idxTipo] ? celdas[idxTipo].trim().toUpperCase() : '';
 
-                // Clasificador inteligente de tablas
                 let claseFila = 'fila-otros';
                 if (tipoVal.includes('PORTATIL')) claseFila = 'fila-portatil';
                 else if (tipoVal.includes('ESCRITORIO') || tipoVal.includes('TORRE') || tipoVal.includes('CPU') || tipoVal.includes('COMPUTADOR')) claseFila = 'fila-escritorio';
@@ -289,35 +283,30 @@
 
                 let filaHtml = `<tr class="fila-dato ${claseFila}" data-grupo="${fila.grupo}" data-estado="${estadoActual}">`;
                 
-                fila.data.forEach((celda, index) => {
-                    if (index === idxSerialOrig) return;
-
+                celdas.forEach((celda, index) => {
                     let contenido = celda || '';
                     if (index === idxEstado) {
-                        let claseBadge = contenido === 'ASIGNADO' ? 'bg-asignado' : (contenido === 'BODEGA' ? 'bg-bodega' : 'bg-default');
+                        let claseBadge = contenido === 'ASIGNADO' ? 'bg-asignado' : (contenido === 'BODEGA' ? 'bg-bodega' : (contenido === 'DEVUELTO' ? 'bg-default' : 'bg-default'));
+                        if (contenido === 'SOPORTE') claseBadge = 'bg-default';
                         contenido = `<span class="badge ${claseBadge}">${contenido}</span>`;
                     }
                     
-                    if (index === idxSerialProv) {
-                        let serialAMostrar = contenido.trim() !== '' ? contenido : valSerialOrig;
-                        contenido = `<a href="javascript:void(0)" onclick="verHistorial('${valSerialOrig}', '${valSerialProv}')" style="color: #0D6BB4; font-weight: bold; text-decoration: underline;">${serialAMostrar}</a>`;
+                    if (index === idxSerialOrig) {
+                        contenido = `<a href="javascript:void(0)" onclick="verHistorial('${valSerialOrig}', '${valSerialProv}')" style="color: #34495E; font-weight: bold; text-decoration: underline;">${valSerialOrig}</a>`;
                     }
                     
                     filaHtml += `<td>${contenido}</td>`;
                 });
                 filaHtml += '</tr>';
 
-                // Distribuimos la fila a la tabla correspondiente
                 if (claseFila === 'fila-portatil') htmlPortatiles += filaHtml;
                 else if (claseFila === 'fila-escritorio') htmlEscritorios += filaHtml;
                 else if (claseFila === 'fila-monitor') htmlMonitores += filaHtml;
-                else htmlOtros += filaHtml;
             });
 
             document.getElementById('cuerpo-portatiles').innerHTML = htmlPortatiles;
             document.getElementById('cuerpo-escritorios').innerHTML = htmlEscritorios;
             document.getElementById('cuerpo-monitores').innerHTML = htmlMonitores;
-            document.getElementById('cuerpo-otros').innerHTML = htmlOtros;
         }
 
         function filtrarPorPestana(grupo, btn) {
@@ -332,11 +321,11 @@
             let filtroGlobal = document.getElementById("buscador").value.toUpperCase();
             let filtroEstado = document.getElementById("filtro-estado").value.toUpperCase();
             let grupoActivo = document.querySelector('.tab-btn.active').innerText;
-            
-            let countP = 0, countE = 0, countM = 0, countO = 0;
+
+            let countP = 0, countE = 0, countM = 0;
 
             document.querySelectorAll('.fila-dato').forEach(fila => {
-                let coincidePestana = (grupoActivo.includes('TODOS') || fila.getAttribute('data-grupo') === grupoActivo);
+                let coincidePestana = (grupoActivo.includes('TODOS') || grupoActivo.includes('GLOBAL') || fila.getAttribute('data-grupo') === grupoActivo);
                 let coincideEstado = (filtroEstado === "" || fila.getAttribute('data-estado') === filtroEstado);
                 let coincideGlobal = fila.innerText.toUpperCase().includes(filtroGlobal);
                 
@@ -345,17 +334,14 @@
                     if (fila.classList.contains('fila-portatil')) countP++;
                     else if (fila.classList.contains('fila-escritorio')) countE++;
                     else if (fila.classList.contains('fila-monitor')) countM++;
-                    else countO++;
                 } else {
                     fila.style.display = "none";
                 }
             });
 
-            // Ocultar sección completa si no hay equipos en ella después de filtrar
             document.getElementById('sec-portatiles').style.display = countP > 0 ? 'block' : 'none';
             document.getElementById('sec-escritorios').style.display = countE > 0 ? 'block' : 'none';
             document.getElementById('sec-monitores').style.display = countM > 0 ? 'block' : 'none';
-            document.getElementById('sec-otros').style.display = countO > 0 ? 'block' : 'none';
         }
 
         function abrirModal() { 
@@ -377,8 +363,12 @@
 
             resp.disabled = false; area.disabled = false; cargo.disabled = false;
             
-            if (evento === 'CREACION_NUEVO') grupoTipo.style.display = 'block';
-            else grupoTipo.style.display = 'none';
+            if (evento === 'CREACION_NUEVO') {
+                grupoTipo.style.display = 'block';
+                estado.value = 'BODEGA';
+            } else {
+                grupoTipo.style.display = 'none';
+            }
 
             if (evento === 'DEVOLUCION_PROVEEDOR') {
                 resp.value = 'PROVEEDOR'; resp.disabled = true;
@@ -387,10 +377,7 @@
                 estado.value = 'DEVUELTO';
             } else if (evento === 'REPARACION') {
                 estado.value = 'SOPORTE';
-            } else {
-                if(resp.value === 'PROVEEDOR' || resp.disabled) {
-                    resp.value = ''; area.value = ''; cargo.value = '';
-                }
+            } else if (evento !== 'CREACION_NUEVO') {
                 estado.value = 'ASIGNADO';
             }
         }
@@ -399,9 +386,9 @@
 
         async function verHistorial(serialPrincipal, serialProv) {
             try {
-                let tituloMostrar = serialProv ? `SERIAL AYS: ${serialProv} (Fábrica: ${serialPrincipal})` : serialPrincipal;
+                let tituloMostrar = serialProv ? `SERIAL AYS/PROV: ${serialProv} (Fábrica: ${serialPrincipal})` : serialPrincipal;
                 document.getElementById('historial-serial').innerText = tituloMostrar;
-                document.getElementById('cuerpo-historial').innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 20px;">Consultando bitácora en la nube... ⏳</td></tr>';
+                document.getElementById('cuerpo-historial').innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 20px;">Consultando bitácora... ⏳</td></tr>';
                 document.getElementById('modalHistorial').style.display = 'block';
 
                 const response = await fetch('bitacora.csv?' + new Date().getTime());
@@ -412,10 +399,10 @@
                 let hayRegistros = false;
                 
                 for(let i=1; i<filas.length; i++) {
-                    // Soportar tanto comas como punto y comas en bitacora también
-                    let sepBitacora = filas[i].includes(';') ? ';' : ',';
-                    let cols = filas[i].split(sepBitacora);
+                    let sep = filas[i].includes(';') ? ';' : ',';
+                    let cols = filas[i].split(sep);
                     let colSerial = cols[1] ? cols[1].trim() : '';
+                    
                     if(colSerial === serialPrincipal || (serialProv && colSerial === serialProv)) {
                         hayRegistros = true;
                         htmlHistorial += `<tr style="border-bottom: 1px solid #ddd;">
@@ -428,9 +415,9 @@
                         </tr>`;
                     }
                 }
-                if(!hayRegistros) htmlHistorial = '<tr><td colspan="6" style="text-align:center; padding: 20px;">No hay registros de cambios en la bitácora.</td></tr>';
+                if(!hayRegistros) htmlHistorial = '<tr><td colspan="6" style="text-align:center; padding: 20px;">No hay registros en la bitácora.</td></tr>';
                 document.getElementById('cuerpo-historial').innerHTML = htmlHistorial;
-            } catch(e) { document.getElementById('cuerpo-historial').innerHTML = '<tr><td colspan="6" style="text-align:center; color:red; padding: 20px;">Error al cargar el historial.</td></tr>'; }
+            } catch(e) { document.getElementById('cuerpo-historial').innerHTML = '<tr><td colspan="6" style="text-align:center; color:red; padding: 20px;">Error al cargar.</td></tr>'; }
         }
 
         async function guardarEnGitHub() {
@@ -447,16 +434,19 @@
                 localStorage.setItem('gh_token', token);
             }
 
-            document.querySelector('.modal-footer .btn-accion').innerText = "Guardando... ⏳";
+            document.querySelector('.modal-footer .btn-guardar').innerText = "Guardando... ⏳";
+            
+            // Aquí sí extraemos del desplegable porque es el módulo global
             const destinoSeleccionado = document.getElementById('m-empresa').value.split(',');
+            const nuevoProveedor = destinoSeleccionado[0].trim();
+            const nuevaEmpresa = destinoSeleccionado[1].trim();
             const tipoActivo = evento === 'CREACION_NUEVO' ? document.getElementById('m-tipo').value : '';
 
-            // Importante: La bitácora siempre se guarda con comas puras
             const data = [
                 fecha, serial, evento, document.getElementById('m-resp').value, 
                 document.getElementById('m-area').value, document.getElementById('m-cargo').value, 
                 document.getElementById('m-ubic').value, document.getElementById('m-estado').value, 
-                destinoSeleccionado[0].trim(), destinoSeleccionado[1].trim(), document.getElementById('m-obs').value, tipoActivo
+                nuevoProveedor, nuevaEmpresa, document.getElementById('m-obs').value, tipoActivo
             ].map(val => val.replace(/,/g, '')); 
 
             try {
@@ -470,14 +460,14 @@
                     method: 'PUT',
                     headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        message: `🚀 Actualización vía Web: ${serial} (${fecha})`,
+                        message: `🚀 Actualización GLOBAL vía Web: ${serial}`,
                         content: btoa(unescape(encodeURIComponent(contenidoNuevo))),
                         sha: fileData.sha
                     })
                 });
 
                 if (putRes.ok) {
-                    alert('¡Evento registrado! El robot de GitHub está actualizando el inventario. Recarga la página en 15 segundos.');
+                    alert('¡Evento registrado exitosamente! Recarga la página en unos segundos.');
                     cerrarModal();
                     document.querySelectorAll('input:not([disabled])').forEach(i => i.value = ''); 
                 } else throw new Error("No se pudo guardar.");
@@ -485,7 +475,7 @@
                 alert("Error: " + error.message);
                 localStorage.removeItem('gh_token'); 
             } finally {
-                document.querySelector('.modal-footer .btn-accion').innerText = "💾 Guardar Evento";
+                document.querySelector('.modal-footer .btn-guardar').innerText = "💾 Guardar Evento Global";
             }
         }
     </script>
