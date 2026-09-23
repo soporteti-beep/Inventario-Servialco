@@ -11,17 +11,16 @@ async function cargarInventario() {
         const filas = data.split('\n').filter(row => row.trim().length > 0);
         if(filas.length === 0) return;
 
-        // Leemos encabezados del CSV
         encabezadosGlobales = filas[0].split(',');
         
-        // Renderizamos los encabezados en la tabla ocultando 'serial_proveedor' original 
-        // y renombrando la primera columna como SERIAL AYS
         let htmlCabecera = '';
         encabezadosGlobales.forEach((h, index) => {
-            if (h === 'serial_proveedor') return; // Omitimos la columna duplicada de la derecha
+            // OCULTAMOS LA COLUMNA SERIAL ORIGINAL
+            if (h === 'serial') return; 
             
             let nombreMostrar = h.toUpperCase().replace(/_/g, ' ');
-            if (h === 'serial') nombreMostrar = 'SERIAL AYS'; // Renombramos la primera columna
+            // RENOMBRAMOS LA COLUMNA SERIAL PROVEEDOR A "SERIAL AYS"
+            if (h === 'serial_proveedor') nombreMostrar = 'SERIAL AYS'; 
             
             htmlCabecera += `<th>${nombreMostrar}</th>`;
         });
@@ -49,34 +48,33 @@ async function cargarInventario() {
 function pintarTabla(datos) {
     let htmlCuerpo = '';
     let idxEstado = encabezadosGlobales.indexOf('estado');
-    let idxSerial = encabezadosGlobales.indexOf('serial');
+    let idxSerialOrig = encabezadosGlobales.indexOf('serial');
     let idxSerialProv = encabezadosGlobales.indexOf('serial_proveedor');
 
     datos.forEach(fila => {
         let estadoActual = idxEstado > -1 ? fila.data[idxEstado].trim().toUpperCase() : '';
-        let valSerial = idxSerial > -1 ? fila.data[idxSerial].trim() : '';
+        let valSerialOrig = idxSerialOrig > -1 ? fila.data[idxSerialOrig].trim() : '';
         let valSerialProv = idxSerialProv > -1 ? fila.data[idxSerialProv].trim() : '';
-        
-        // El serial preferido a mostrar en la 1ª columna será el Serial AYS/Proveedor si existe, si no, el serial estándar
-        let serialAMostrar = valSerialProv !== '' ? valSerialProv : valSerial;
 
         htmlCuerpo += `<tr class="fila-dato" data-grupo="${fila.grupo}" data-estado="${estadoActual}">`;
         
         fila.data.forEach((celda, index) => {
-            // Omitimos renderizar la columna 'serial_proveedor' duplicada a la derecha
-            if (encabezadosGlobales[index] === 'serial_proveedor') return;
+            // OCULTAMOS EL CONTENIDO DE LA COLUMNA SERIAL ORIGINAL
+            if (index === idxSerialOrig) return;
 
             let contenido = celda;
             
-            // Badge para la columna de Estado
+            // Badge para Estado
             if (index === idxEstado) {
                 let claseBadge = celda === 'ASIGNADO' ? 'bg-asignado' : (celda === 'BODEGA' ? 'bg-bodega' : 'bg-default');
                 contenido = `<span class="badge ${claseBadge}">${celda}</span>`;
             }
             
-            // En la primera columna (SERIAL AYS), mostramos el código AYS clicable para el historial
-            if (index === idxSerial) {
-                contenido = `<a href="javascript:void(0)" onclick="verHistorial('${valSerial}', '${valSerialProv}')" style="color: #0D6BB4; font-weight: bold; text-decoration: underline;" title="Ver historial de trazabilidad">${serialAMostrar}</a>`;
+            // CONVERTIMOS LA COLUMNA SERIAL AYS EN EL ENLACE PARA EL HISTORIAL
+            if (index === idxSerialProv) {
+                // Si la celda está vacía, mostramos el serial original para no dejar el campo en blanco
+                let serialAMostrar = celda.trim() !== '' ? celda : valSerialOrig;
+                contenido = `<a href="javascript:void(0)" onclick="verHistorial('${valSerialOrig}', '${valSerialProv}')" style="color: #0D6BB4; font-weight: bold; text-decoration: underline;" title="Ver historial de trazabilidad">${serialAMostrar}</a>`;
             }
             
             htmlCuerpo += `<td>${contenido}</td>`;
