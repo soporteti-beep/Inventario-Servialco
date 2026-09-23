@@ -49,19 +49,28 @@
                     <input type="date" id="m-fecha" required>
                 </div>
                 <div class="form-group">
-                    <label>Serial del Equipo (Llave)*</label>
-                    <input type="text" id="m-serial" placeholder="Ej: AS27300 o 5CG416681G" required>
+                    <label>Serial del Activo (Llave)*</label>
+                    <input type="text" id="m-serial" placeholder="Ej: AS27300, 5CG416681G o Serial Monitor" required>
                 </div>
                 <div class="form-group">
                     <label>Tipo de Evento*</label>
                     <select id="m-evento" onchange="ajustarFormulario()">
                         <option value="CAMBIO_USUARIO">Cambio de Responsable</option>
-                        <option value="CREACION_NUEVO">Ingreso Equipo Nuevo</option>
+                        <option value="CREACION_NUEVO">Ingreso Activo Nuevo</option>
                         <option value="DEVOLUCION_PROVEEDOR">Devolución Proveedor</option>
                         <option value="REPARACION">Reparación/Soporte</option>
                     </select>
                 </div>
-                <div class="form-group"><label>Nuevo Responsable</label><input type="text" id="m-resp"></div>
+                <!-- Nuevo campo para definir si es Monitor o Equipo cuando se crea uno nuevo -->
+                <div class="form-group" id="grupo-tipo-activo" style="display: none;">
+                     <label>Tipo de Activo (Solo Nuevos)*</label>
+                     <select id="m-tipo">
+                         <option value="PORTATIL">Computador Portátil</option>
+                         <option value="ESCRITORIO">Computador de Escritorio</option>
+                         <option value="MONITOR">Monitor</option>
+                     </select>
+                </div>
+                <div class="form-group"><label>Nuevo Responsable</label><input type="text" id="m-resp" placeholder="Nombre o 'N/A'"></div>
                 <div class="form-group"><label>Nueva Área</label><input type="text" id="m-area"></div>
                 <div class="form-group"><label>Nuevo Cargo</label><input type="text" id="m-cargo"></div>
                 <div class="form-group"><label>Nueva Ubicación</label><input type="text" id="m-ubic"></div>
@@ -87,7 +96,7 @@
             </div>
             <div class="form-group" style="margin-top:15px; width:100%;">
                 <label>Observaciones</label>
-                <input type="text" id="m-obs" placeholder="Motivo del evento...">
+                <input type="text" id="m-obs" placeholder="Motivo del evento (Ej: Monitor entregado a Juan)...">
             </div>
             <div class="modal-footer">
                 <button class="btn-cancelar" onclick="cerrarModal()">Cancelar</button>
@@ -99,7 +108,7 @@
     <!-- MODAL 2: HISTORIAL DE CAMBIOS -->
     <div id="modalHistorial" class="modal">
         <div class="modal-content" style="width: 80%; max-width: 900px;">
-            <div class="modal-header">Trazabilidad del Equipo: <span id="historial-serial" style="color:#70C457;"></span></div>
+            <div class="modal-header">Trazabilidad del Activo: <span id="historial-serial" style="color:#70C457;"></span></div>
             <div style="overflow-x:auto; max-height: 400px; overflow-y: auto;">
                 <table style="width: 100%; border-collapse: collapse;">
                     <thead>
@@ -122,9 +131,9 @@
     </div>
 
     <!-- CARGA MODULAR DE JAVASCRIPT -->
-    <script src="js/main.js?v=1"></script>
-    <script src="js/ui.js?v=1"></script>
-    <script src="js/api.js?v=1"></script>
+    <script src="js/main.js?v=2"></script>
+    <script src="js/ui.js?v=2"></script>
+    <script src="js/api.js?v=2"></script>
 
 </body>
 </html>
