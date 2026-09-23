@@ -4,50 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventario TI - Servialco</title>
-    <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
-        .header { display: flex; align-items: center; justify-content: space-between; background-color: #0D6BB4; color: white; padding: 15px 30px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .header-left { display: flex; align-items: center; }
-        .header img { height: 50px; margin-right: 20px; background-color: white; padding: 5px; border-radius: 4px; }
-        .header h1 { margin: 0; font-size: 24px; }
-        
-        .btn-accion { background-color: #70C457; color: white; border: none; padding: 10px 20px; border-radius: 5px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.2);}
-        .btn-accion:hover { background-color: #1B9B59; }
-
-        /* Contenedor de Búsqueda y Filtro Limpio */
-        .search-container { display: flex; gap: 15px; margin-bottom: 20px; }
-        input[type="text"].buscador { flex-grow: 1; padding: 12px; font-size: 16px; border: 2px solid #A8D5E8; border-radius: 6px; outline: none; }
-        input[type="text"].buscador:focus { border-color: #70C457; }
-        select.filtro-estado { padding: 12px; font-size: 16px; border: 2px solid #A8D5E8; border-radius: 6px; outline: none; cursor: pointer; font-weight: bold; color: #333;}
-        
-        .tabs { display: flex; gap: 5px; margin-bottom: 10px; overflow-x: auto; padding-bottom: 5px; }
-        .tab-btn { background-color: #e0e0e0; border: none; padding: 10px 20px; cursor: pointer; border-radius: 8px 8px 0 0; font-weight: bold; color: #333; transition: 0.3s; white-space: nowrap; }
-        .tab-btn:hover { background-color: #A8D5E8; }
-        .tab-btn.active { background-color: #1B9B59; color: white; }
-
-        table { width: 100%; border-collapse: collapse; background: white; border-radius: 0 8px 8px 8px; overflow: hidden; font-size: 13px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);}
-        th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #ddd; }
-        th { background-color: #0D6BB4; color: white; font-weight: bold; position: sticky; top: 0; white-space: nowrap; z-index: 2;}
-        tr:nth-child(even) { background-color: #f9fbfb; }
-        tr:hover { background-color: #e2f0f7; }
-        .badge { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; color: white; display: inline-block;}
-        .bg-asignado { background-color: #1B9B59; } .bg-bodega { background-color: #70C457; } .bg-default { background-color: #666; }
-
-        /* Modal Generales */
-        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
-        .modal-content { background-color: #fff; margin: 5% auto; padding: 25px; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
-        .modal-header { font-size: 20px; font-weight: bold; color: #0D6BB4; margin-bottom: 15px; border-bottom: 2px solid #A8D5E8; padding-bottom: 10px;}
-        .modal-footer { margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px; }
-        .btn-cancelar { background-color: #ccc; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold;}
-        
-        /* Modal Formulario */
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .form-group { display: flex; flex-direction: column; }
-        .form-group label { font-size: 12px; font-weight: bold; color: #555; margin-bottom: 5px; }
-        .form-group input, .form-group select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; outline: none; }
-        .form-group input:focus, .form-group select:focus { border-color: #0D6BB4; }
-        .form-group input:disabled, .form-group select:disabled { background-color: #e9ecef; cursor: not-allowed; }
-    </style>
+    <!-- Aquí conectamos el diseño externo -->
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -59,7 +17,6 @@
         <button class="btn-accion" onclick="abrirModal()">+ Actualizar Bitácora</button>
     </div>
 
-    <!-- Buscador Global y Filtro de Estado -->
     <div class="search-container">
         <input type="text" id="buscador" class="buscador" onkeyup="filtrarTabla()" placeholder="Buscar equipo, serial o responsable...">
         <select id="filtro-estado" class="filtro-estado" onchange="filtrarTabla()">
@@ -82,7 +39,7 @@
         </table>
     </div>
 
-    <!-- VENTANA FLOTANTE: FORMULARIO BITÁCORA -->
+    <!-- MODAL 1: FORMULARIO BITÁCORA -->
     <div id="miModal" class="modal">
         <div class="modal-content" style="width: 50%; max-width: 650px;">
             <div class="modal-header">Registrar Evento en Bitácora</div>
@@ -100,10 +57,10 @@
                         <option value="REPARACION">Reparación/Soporte</option>
                     </select>
                 </div>
-                <div class="form-group"><label>Nuevo Responsable</label><input type="text" id="m-resp" placeholder="Nombre del usuario"></div>
-                <div class="form-group"><label>Nueva Área</label><input type="text" id="m-area" placeholder="Ej: Operaciones"></div>
-                <div class="form-group"><label>Nuevo Cargo</label><input type="text" id="m-cargo" placeholder="Ej: Coordinador"></div>
-                <div class="form-group"><label>Nueva Ubicación</label><input type="text" id="m-ubic" placeholder="Ej: Sede Principal"></div>
+                <div class="form-group"><label>Nuevo Responsable</label><input type="text" id="m-resp"></div>
+                <div class="form-group"><label>Nueva Área</label><input type="text" id="m-area"></div>
+                <div class="form-group"><label>Nuevo Cargo</label><input type="text" id="m-cargo"></div>
+                <div class="form-group"><label>Nueva Ubicación</label><input type="text" id="m-ubic"></div>
                 <div class="form-group">
                     <label>Nuevo Estado</label>
                     <select id="m-estado">
@@ -126,7 +83,7 @@
             </div>
             <div class="form-group" style="margin-top:15px; width:100%;">
                 <label>Observaciones</label>
-                <input type="text" id="m-obs" placeholder="Motivo del evento (Ej: Entrega de equipo nuevo)...">
+                <input type="text" id="m-obs" placeholder="Motivo del evento...">
             </div>
             <div class="modal-footer">
                 <button class="btn-cancelar" onclick="cerrarModal()">Cancelar</button>
@@ -135,7 +92,7 @@
         </div>
     </div>
 
-    <!-- VENTANA FLOTANTE: HISTORIAL DE CAMBIOS -->
+    <!-- MODAL 2: HISTORIAL DE CAMBIOS -->
     <div id="modalHistorial" class="modal">
         <div class="modal-content" style="width: 80%; max-width: 900px;">
             <div class="modal-header">Trazabilidad del Equipo: <span id="historial-serial" style="color:#70C457;"></span></div>
@@ -151,9 +108,7 @@
                             <th style="background-color:#A8D5E8; color:#333;">Observaciones</th>
                         </tr>
                     </thead>
-                    <tbody id="cuerpo-historial">
-                        <!-- El historial se carga aquí -->
-                    </tbody>
+                    <tbody id="cuerpo-historial"></tbody>
                 </table>
             </div>
             <div class="modal-footer">
@@ -162,8 +117,8 @@
         </div>
     </div>
 
-    <!-- AQUÍ CONECTAMOS LA LÓGICA -->
-    <script src="bitacora.js"></script>
+    <!-- EL ?v=2 OBLIGA AL NAVEGADOR A CARGAR LA VERSIÓN CORREGIDA -->
+    <script src="bitacora.js?v=2"></script>
 
 </body>
 </html>
