@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventario TI - Servialco</title>
-    <link rel="stylesheet" href="style.css">
+    <!-- CSS en su propia carpeta -->
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
@@ -28,7 +29,7 @@
     </div>
 
     <div class="tabs" id="tabs-container">
-        <button class="tab-btn active" onclick="filtrarPorPestana('TODOS', this)">TODOS LOS EQUIPOS</button>
+        <!-- Las pestañas se renderizan desde JS -->
     </div>
 
     <div style="overflow-x:auto; max-height: 70vh; overflow-y: auto;">
@@ -49,7 +50,7 @@
                 </div>
                 <div class="form-group">
                     <label>Serial del Equipo (Llave)*</label>
-                    <input type="text" id="m-serial" placeholder="Ej: 5CG416681G o AS27300" required>
+                    <input type="text" id="m-serial" placeholder="Ej: AS27300 o 5CG416681G" required>
                 </div>
                 <div class="form-group">
                     <label>Tipo de Evento*</label>
@@ -120,8 +121,10 @@
         </div>
     </div>
 
-    <!-- Carga de versión 4 (actualizada para soportar Serial AYS) -->
-    <script src="bitacora.js?v=4"></script>
+    <!-- CARGA MODULAR DE JAVASCRIPT -->
+    <script src="js/main.js?v=1"></script>
+    <script src="js/ui.js?v=1"></script>
+    <script src="js/api.js?v=1"></script>
 
 </body>
 </html>
