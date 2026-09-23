@@ -11,8 +11,21 @@ async function cargarInventario() {
         const filas = data.split('\n').filter(row => row.trim().length > 0);
         if(filas.length === 0) return;
 
+        // Leemos encabezados del CSV
         encabezadosGlobales = filas[0].split(',');
-        document.getElementById('filas-cabecera').innerHTML = encabezadosGlobales.map(h => `<th>${h.toUpperCase().replace(/_/g, ' ')}</th>`).join('');
+        
+        // Renderizamos los encabezados en la tabla ocultando 'serial_proveedor' original 
+        // y renombrando la primera columna como SERIAL AYS
+        let htmlCabecera = '';
+        encabezadosGlobales.forEach((h, index) => {
+            if (h === 'serial_proveedor') return; // Omitimos la columna duplicada de la derecha
+            
+            let nombreMostrar = h.toUpperCase().replace(/_/g, ' ');
+            if (h === 'serial') nombreMostrar = 'SERIAL AYS'; // Renombramos la primera columna
+            
+            htmlCabecera += `<th>${nombreMostrar}</th>`;
+        });
+        document.getElementById('filas-cabecera').innerHTML = htmlCabecera;
 
         let gruposUnicos = new Set();
         for (let i = 1; i < filas.length; i++) {
@@ -44,25 +57,26 @@ function pintarTabla(datos) {
         let valSerial = idxSerial > -1 ? fila.data[idxSerial].trim() : '';
         let valSerialProv = idxSerialProv > -1 ? fila.data[idxSerialProv].trim() : '';
         
+        // El serial preferido a mostrar en la 1ª columna será el Serial AYS/Proveedor si existe, si no, el serial estándar
+        let serialAMostrar = valSerialProv !== '' ? valSerialProv : valSerial;
+
         htmlCuerpo += `<tr class="fila-dato" data-grupo="${fila.grupo}" data-estado="${estadoActual}">`;
         
         fila.data.forEach((celda, index) => {
+            // Omitimos renderizar la columna 'serial_proveedor' duplicada a la derecha
+            if (encabezadosGlobales[index] === 'serial_proveedor') return;
+
             let contenido = celda;
             
-            // Badge para Estado
+            // Badge para la columna de Estado
             if (index === idxEstado) {
                 let claseBadge = celda === 'ASIGNADO' ? 'bg-asignado' : (celda === 'BODEGA' ? 'bg-bodega' : 'bg-default');
                 contenido = `<span class="badge ${claseBadge}">${celda}</span>`;
             }
             
-            // Enlace en Serial Principal
-            if (index === idxSerial && celda.trim() !== '') {
-                contenido = `<a href="javascript:void(0)" onclick="verHistorial('${celda}', '${valSerialProv}')" style="color: #0D6BB4; font-weight: bold; text-decoration: underline;" title="Ver historial">${celda}</a>`;
-            }
-
-            // Enlace en Serial Proveedor (AYS / Construsalco)
-            if (index === idxSerialProv && celda.trim() !== '') {
-                contenido = `<a href="javascript:void(0)" onclick="verHistorial('${valSerial}', '${celda}')" style="color: #0D6BB4; font-weight: bold; text-decoration: underline;" title="Ver historial">${celda}</a>`;
+            // En la primera columna (SERIAL AYS), mostramos el código AYS clicable para el historial
+            if (index === idxSerial) {
+                contenido = `<a href="javascript:void(0)" onclick="verHistorial('${valSerial}', '${valSerialProv}')" style="color: #0D6BB4; font-weight: bold; text-decoration: underline;" title="Ver historial de trazabilidad">${serialAMostrar}</a>`;
             }
             
             htmlCuerpo += `<td>${contenido}</td>`;
@@ -98,7 +112,7 @@ function filtrarTabla() {
 
 async function verHistorial(serialPrincipal, serialProv) {
     try {
-        let tituloMostrar = serialProv ? `${serialPrincipal} (AYS: ${serialProv})` : serialPrincipal;
+        let tituloMostrar = serialProv ? `SERIAL AYS: ${serialProv} (Fábrica: ${serialPrincipal})` : serialPrincipal;
         document.getElementById('historial-serial').innerText = tituloMostrar;
         document.getElementById('cuerpo-historial').innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 20px;">Consultando bitácora en la nube... ⏳</td></tr>';
         document.getElementById('modalHistorial').style.display = 'block';
@@ -114,7 +128,6 @@ async function verHistorial(serialPrincipal, serialProv) {
             let cols = filas[i].split(',');
             let colSerial = cols[1] ? cols[1].trim() : '';
             
-            // Coincide si en la bitácora se registró el serial de fábrica O el serial AYS
             if(colSerial === serialPrincipal || (serialProv && colSerial === serialProv)) {
                 hayRegistros = true;
                 htmlHistorial += `<tr style="border-bottom: 1px solid #ddd;">
