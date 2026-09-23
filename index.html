@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventario TI - Servialco</title>
-    <!-- Aquí conectamos el diseño externo -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -44,6 +43,10 @@
         <div class="modal-content" style="width: 50%; max-width: 650px;">
             <div class="modal-header">Registrar Evento en Bitácora</div>
             <div class="form-grid">
+                <div class="form-group">
+                    <label>Fecha del Evento*</label>
+                    <input type="date" id="m-fecha" required>
+                </div>
                 <div class="form-group">
                     <label>Serial del Equipo (Llave)*</label>
                     <input type="text" id="m-serial" placeholder="Ej: 5CG416681G" required>
@@ -117,8 +120,8 @@
         </div>
     </div>
 
-    <!-- EL ?v=2 OBLIGA AL NAVEGADOR A CARGAR LA VERSIÓN CORREGIDA -->
-    <script src="bitacora.js?v=2"></script>
+    <!-- Carga de versión 3 -->
+    <script src="bitacora.js?v=3"></script>
 
 </body>
 </html>
