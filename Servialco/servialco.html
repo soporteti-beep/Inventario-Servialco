@@ -51,18 +51,19 @@
 </head>
 <body>
 
-    <!-- MENÚ DE NAVEGACIÓN -->
+    <!-- MENÚ DE NAVEGACIÓN CORREGIDO (Usa ../ para salir de la carpeta actual) -->
     <div class="nav-modules">
-        <a href="index.html">📋 Todos los Equipos</a>
+        <a href="../index.html">📋 Todos los Equipos</a>
         <a href="servialco.html" class="active">🏢 PROPIO - SERVIALCO</a>
-        <a href="ays.html">🏢 AYS</a>
-        <a href="unicat.html">🏢 UNICAT</a>
-        <a href="arky.html">🏢 ARKY</a>
+        <a href="../AYS-Servialco/ays-servialco.html">🏢 AYS</a>
+        <a href="../UNICAT/unicat.html">🏢 UNICAT</a>
+        <a href="../ARKY/arky.html">🏢 ARKY</a>
     </div>
 
     <div class="header">
         <div class="header-left">
-            <img src="logo-servialco.png" alt="Logo Servialco" onerror="this.style.display='none'">
+            <!-- RUTA DEL LOGO ACTUALIZADA (Sale de la carpeta para buscar en la raíz) -->
+            <img src="../logo-servialco.png" alt="Logo Servialco" onerror="this.style.display='none'">
             <h1>Módulo: Equipos Propios (Servialco SAS)</h1>
         </div>
         <button class="btn-accion" onclick="abrirModal()">+ Actualizar Bitácora (Propios)</button>
@@ -79,7 +80,6 @@
         </select>
     </div>
 
-    <!-- SECCIÓN: PORTÁTILES -->
     <div id="sec-portatiles" style="display:none;">
         <h2 class="titulo-seccion">💻 Equipos Portátiles</h2>
         <div style="overflow-x:auto; margin-bottom: 30px;">
@@ -90,7 +90,6 @@
         </div>
     </div>
 
-    <!-- SECCIÓN: ESCRITORIOS -->
     <div id="sec-escritorios" style="display:none;">
         <h2 class="titulo-seccion">🖥️ Equipos de Escritorio y Torres</h2>
         <div style="overflow-x:auto; margin-bottom: 30px;">
@@ -101,7 +100,6 @@
         </div>
     </div>
 
-    <!-- SECCIÓN: MONITORES -->
     <div id="sec-monitores" style="display:none;">
         <h2 class="titulo-seccion">📺 Monitores (Propios Servialco)</h2>
         <div style="overflow-x:auto; margin-bottom: 30px;">
@@ -153,7 +151,6 @@
                         <option value="SOPORTE">EN SOPORTE</option>
                     </select>
                 </div>
-                <!-- Empresa forzada por código -->
             </div>
             <div class="form-group" style="margin-top:15px; width:100%;">
                 <label>Observaciones</label>
@@ -200,7 +197,7 @@
 
         async function cargarInventario() {
             try {
-                // Lee directamente tu base de datos servialco.csv
+                // RUTA: servialco.csv está en la misma carpeta que servialco.html, así que no usa ../
                 const response = await fetch('servialco.csv?' + new Date().getTime()); 
                 const data = await response.text();
                 const filas = data.split('\n').filter(row => row.trim().length > 0);
@@ -211,7 +208,7 @@
                 
                 let htmlCabecera = '';
                 encabezadosGlobales.forEach((h) => {
-                    if (h === 'serial_proveedor') return; // Oculto para Servialco
+                    if (h === 'serial_proveedor') return; 
                     let nombreMostrar = h.toUpperCase().replace(/_/g, ' ');
                     htmlCabecera += `<th>${nombreMostrar}</th>`;
                 });
@@ -337,7 +334,8 @@
                 document.getElementById('cuerpo-historial').innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 20px;">Consultando bitácora... ⏳</td></tr>';
                 document.getElementById('modalHistorial').style.display = 'block';
 
-                const response = await fetch('bitacora.csv?' + new Date().getTime());
+                // RUTA ACTUALIZADA HACIA LA RAÍZ (../) PARA BUSCAR LA BITÁCORA MAESTRA
+                const response = await fetch('../bitacora.csv?' + new Date().getTime());
                 const data = await response.text();
                 const filas = data.split('\n').filter(row => row.trim().length > 0);
                 
@@ -382,7 +380,6 @@
 
             document.querySelector('.modal-footer .btn-guardar').innerText = "Guardando... ⏳";
             
-            // Proveedor y empresa automatizados
             const nuevoProveedor = 'PROPIO';
             const nuevaEmpresa = 'SERVIALCO';
             const tipoActivo = evento === 'CREACION_NUEVO' ? document.getElementById('m-tipo').value : '';
@@ -395,6 +392,7 @@
             ].map(val => val.replace(/,/g, '')); 
 
             try {
+                // RUTA DE LA API SIGUE IGUAL (Porque usa el nombre del repositorio y no la carpeta local)
                 const getRes = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/bitacora.csv`, { headers: { 'Authorization': `token ${token}` }});
                 if (!getRes.ok) throw new Error("Fallo de autenticación. Verifica tu Token.");
                 
