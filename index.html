@@ -25,7 +25,11 @@
 
         table { width: 100%; border-collapse: collapse; background: white; border-radius: 0 8px 8px 8px; overflow: hidden; font-size: 13px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);}
         th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #ddd; }
-        th { background-color: #0D6BB4; color: white; font-weight: bold; position: sticky; top: 0; white-space: nowrap;}
+        th { background-color: #0D6BB4; color: white; font-weight: bold; position: sticky; top: 0; white-space: nowrap; z-index: 2;}
+        .th-filtro { background-color: #e2f0f7; padding: 5px; position: sticky; top: 38px; z-index: 1; border-bottom: 2px solid #0D6BB4;}
+        .col-filter { width: 100%; box-sizing: border-box; padding: 5px; font-size: 11px; border: 1px solid #ccc; border-radius: 4px; outline: none; }
+        .col-filter:focus { border-color: #0D6BB4; }
+        
         tr:nth-child(even) { background-color: #f9fbfb; }
         tr:hover { background-color: #e2f0f7; }
         .badge { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; color: white; display: inline-block;}
@@ -55,17 +59,21 @@
         <button class="btn-accion" onclick="abrirModal()">+ Actualizar Bitácora</button>
     </div>
 
+    <!-- Buscador Global -->
     <div class="search-container">
-        <input type="text" id="buscador" onkeyup="filtrarTabla()" placeholder="Buscar por Serial, Responsable, Equipo...">
+        <input type="text" id="buscador" onkeyup="filtrarTabla()" placeholder="Buscador global rápido (Aplica a la pestaña actual)...">
     </div>
 
     <div class="tabs" id="tabs-container">
         <button class="tab-btn active" onclick="filtrarPorPestana('TODOS', this)">TODOS LOS EQUIPOS</button>
     </div>
 
-    <div style="overflow-x:auto;">
+    <div style="overflow-x:auto; max-height: 70vh; overflow-y: auto;">
         <table id="tablaInventario">
-            <thead><tr id="filas-cabecera"></tr></thead>
+            <thead>
+                <tr id="filas-cabecera"></tr>
+                <tr id="filas-filtros"></tr> <!-- Aquí irán los filtros por columna de Excel -->
+            </thead>
             <tbody id="cuerpo-tabla"></tbody>
         </table>
     </div>
@@ -103,7 +111,7 @@
                 </div>
                 <div class="form-group">
                     <label>Empresa (Pestaña destino)*</label>
-                    <!-- Formato: PROVEEDOR,EMPRESA (separamos por coma para que el script los entienda) -->
+                    <!-- Formato estricto para evitar pestañas duplicadas -->
                     <select id="m-empresa">
                         <option value="AYS,CONSTRUSALCO">AYS - CONSTRUSALCO</option>
                         <option value="PROPIO,SERVIALCO">PROPIO - SERVIALCO</option>
