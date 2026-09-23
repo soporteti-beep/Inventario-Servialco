@@ -12,19 +12,11 @@ async function cargarInventario() {
         if(filas.length === 0) return;
 
         encabezadosGlobales = filas[0].split(',');
-        
-        // 1. Pintar Encabezados
         document.getElementById('filas-cabecera').innerHTML = encabezadosGlobales.map(h => `<th>${h.toUpperCase().replace(/_/g, ' ')}</th>`).join('');
-        
-        // 2. Pintar Filtros por Columna (Estilo Excel)
-        document.getElementById('filas-filtros').innerHTML = encabezadosGlobales.map((_, index) => 
-            `<td class="th-filtro"><input type="text" class="col-filter" data-idx="${index}" onkeyup="filtrarTabla()" placeholder="🔍 Filtrar..."></td>`
-        ).join('');
 
         let gruposUnicos = new Set();
         for (let i = 1; i < filas.length; i++) {
             const columnas = filas[i].split(',');
-            // Aseguramos que no haya espacios raros que creen pestañas dobles
             const proveedor = columnas[5] ? columnas[5].trim() : 'PROPIO';
             const empresa = columnas[6] ? columnas[6].trim() : 'S/E';
             const etiquetaGrupo = `${proveedor} - ${empresa}`;
@@ -38,20 +30,34 @@ async function cargarInventario() {
             if(grupo !== " - ") tabsContainer.innerHTML += `<button class="tab-btn" onclick="filtrarPorPestana('${grupo}', this)">${grupo}</button>`;
         });
         pintarTabla(datosGlobales);
-    } catch (e) { console.error("Error", e); }
+    } catch (e) { console.error("Error cargando inventario", e); }
 }
 
 function pintarTabla(datos) {
     let htmlCuerpo = '';
+    let idxEstado = encabezadosGlobales.indexOf('estado');
+    let idxSerial = encabezadosGlobales.indexOf('serial');
+
     datos.forEach(fila => {
-        htmlCuerpo += `<tr class="fila-dato" data-grupo="${fila.grupo}">`;
+        let estadoActual = idxEstado > -1 ? fila.data[idxEstado].trim().toUpperCase() : '';
+        
+        // Etiquetamos la fila con su grupo y su estado para facilitar el filtro
+        htmlCuerpo += `<tr class="fila-dato" data-grupo="${fila.grupo}" data-estado="${estadoActual}">`;
+        
         fila.data.forEach((celda, index) => {
             let contenido = celda;
-            if (encabezadosGlobales[index] === 'estado') {
-                let claseBadge = celda === 'ASIGNADO' ? 'bg-asignado' : (celda === 'BODEGA' ? 'bg-bodega' : (celda === 'SOPORTE' ? 'bg-default' : 'bg-default'));
-                if (celda === 'SOPORTE') claseBadge = 'bg-default'; // Color gris para soporte
+            
+            // Badge para la columna de Estado
+            if (index === idxEstado) {
+                let claseBadge = celda === 'ASIGNADO' ? 'bg-asignado' : (celda === 'BODEGA' ? 'bg-bodega' : 'bg-default');
                 contenido = `<span class="badge ${claseBadge}">${celda}</span>`;
             }
+            
+            // Convertimos el Serial en un Enlace Clicable para ver el historial
+            if (index === idxSerial && celda.trim() !== '') {
+                contenido = `<a href="javascript:void(0)" onclick="verHistorial('${celda}')" style="color: #0D6BB4; font-weight: bold; text-decoration: underline;" title="Ver historial de cambios">${celda}</a>`;
+            }
+            
             htmlCuerpo += `<td>${contenido}</td>`;
         });
         htmlCuerpo += '</tr>';
@@ -60,51 +66,83 @@ function pintarTabla(datos) {
 }
 
 function filtrarPorPestana(grupo, btn) {
-    // Cambiar estilo del botón activo
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     
-    // Limpiar todos los filtros al cambiar de pestaña para evitar confusiones
+    // Limpiamos los filtros al cambiar de pestaña
     document.getElementById("buscador").value = '';
-    document.querySelectorAll('.col-filter').forEach(input => input.value = '');
+    document.getElementById("filtro-estado").value = '';
     
-    // Ejecutar filtro maestro
     filtrarTabla();
 }
 
-// MOTOR DE FILTRADO MAESTRO (Pestañas + Global + Columnas)
 function filtrarTabla() {
     let filtroGlobal = document.getElementById("buscador").value.toUpperCase();
+    let filtroEstado = document.getElementById("filtro-estado").value.toUpperCase();
     let grupoActivo = document.querySelector('.tab-btn.active').innerText;
     
-    // Obtener los valores de todos los filtros de columna
-    let filtrosColumnas = Array.from(document.querySelectorAll('.col-filter')).map(input => input.value.toUpperCase());
-
     document.querySelectorAll('.fila-dato').forEach(fila => {
-        // 1. Validar Pestaña
         let coincidePestana = (grupoActivo === 'TODOS LOS EQUIPOS' || fila.getAttribute('data-grupo') === grupoActivo);
+        let coincideEstado = (filtroEstado === "" || fila.getAttribute('data-estado') === filtroEstado);
+        let coincideGlobal = fila.innerText.toUpperCase().includes(filtroGlobal);
         
-        // 2. Validar Buscador Global
-        let textoFila = fila.innerText.toUpperCase();
-        let coincideGlobal = textoFila.includes(filtroGlobal);
-        
-        // 3. Validar Filtros de Columna Exactos
-        let coincideColumnas = true;
-        let celdas = fila.getElementsByTagName('td');
-        
-        filtrosColumnas.forEach((filtroCol, index) => {
-            if (filtroCol && celdas[index]) {
-                if (!celdas[index].innerText.toUpperCase().includes(filtroCol)) {
-                    coincideColumnas = false;
-                }
-            }
-        });
-
-        // Mostrar u ocultar la fila
-        fila.style.display = (coincidePestana && coincideGlobal && coincideColumnas) ? "" : "none";
+        fila.style.display = (coincidePestana && coincideEstado && coincideGlobal) ? "" : "none";
     });
 }
 
+/* =========================================
+   NUEVO: MOTOR DE HISTORIAL (TRAZABILIDAD)
+===========================================*/
+async function verHistorial(serialBuscado) {
+    try {
+        document.getElementById('historial-serial').innerText = serialBuscado;
+        document.getElementById('cuerpo-historial').innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 20px;">Consultando bitácora en la nube... ⏳</td></tr>';
+        document.getElementById('modalHistorial').style.display = 'block';
+
+        const response = await fetch('bitacora.csv?' + new Date().getTime());
+        const data = await response.text();
+        const filas = data.split('\n').filter(row => row.trim().length > 0);
+        
+        let htmlHistorial = '';
+        let hayRegistros = false;
+        
+        // Empezamos desde i=1 para saltar los encabezados de la bitácora
+        for(let i=1; i<filas.length; i++) {
+            let cols = filas[i].split(',');
+            let colSerial = cols[1] ? cols[1].trim() : '';
+            
+            if(colSerial === serialBuscado) {
+                hayRegistros = true;
+                // Formato bitácora: fecha(0), serial(1), evento(2), resp(3), area(4), cargo(5), ubic(6), estado(7), prov(8), emp(9), obs(10)
+                htmlHistorial += `<tr style="border-bottom: 1px solid #ddd;">
+                    <td style="padding: 10px;">${cols[0] || ''}</td>
+                    <td style="padding: 10px;"><strong>${cols[2] || ''}</strong></td>
+                    <td style="padding: 10px;">${cols[3] || ''}</td>
+                    <td style="padding: 10px;">${cols[6] || ''}</td>
+                    <td style="padding: 10px;"><span class="badge bg-default">${cols[7] || ''}</span></td>
+                    <td style="padding: 10px;">${cols[10] || ''}</td>
+                </tr>`;
+            }
+        }
+        
+        if(!hayRegistros) {
+            htmlHistorial = '<tr><td colspan="6" style="text-align:center; padding: 20px;">No hay registros de cambios en la bitácora para este equipo.</td></tr>';
+        }
+        
+        document.getElementById('cuerpo-historial').innerHTML = htmlHistorial;
+    } catch(e) {
+        console.error("Error al cargar historial:", e);
+        document.getElementById('cuerpo-historial').innerHTML = '<tr><td colspan="6" style="text-align:center; color:red; padding: 20px;">Error al cargar el historial.</td></tr>';
+    }
+}
+
+function cerrarHistorial() {
+    document.getElementById('modalHistorial').style.display = 'none';
+}
+
+/* =========================================
+   MÉTODOS DEL MODAL DE ACTUALIZACIÓN
+===========================================*/
 function abrirModal() { 
     document.getElementById('miModal').style.display = 'block'; 
     ajustarFormulario();
@@ -121,7 +159,6 @@ function ajustarFormulario() {
     let cargo = document.getElementById('m-cargo');
     let estado = document.getElementById('m-estado');
 
-    // Desbloquear campos por defecto
     resp.disabled = false; area.disabled = false; cargo.disabled = false;
     
     if (evento === 'DEVOLUCION_PROVEEDOR') {
@@ -153,23 +190,16 @@ async function guardarEnGitHub() {
     const botonOriginal = document.querySelector('.modal-footer .btn-accion').innerText;
     document.querySelector('.modal-footer .btn-accion').innerText = "Guardando... ⏳";
 
-    // Extraer proveedor y empresa limpiamente de la selección ("AYS,SERVIALCO")
     const destinoSeleccionado = document.getElementById('m-empresa').value.split(',');
     const nuevoProveedor = destinoSeleccionado[0].trim();
     const nuevaEmpresa = destinoSeleccionado[1].trim();
 
     const f = new Date().toISOString().split('T')[0];
     const data = [
-        f, 
-        serial, 
-        document.getElementById('m-evento').value,
-        document.getElementById('m-resp').value, 
-        document.getElementById('m-area').value,
-        document.getElementById('m-cargo').value, 
-        document.getElementById('m-ubic').value,
-        document.getElementById('m-estado').value, 
-        nuevoProveedor, 
-        nuevaEmpresa,
+        f, serial, document.getElementById('m-evento').value,
+        document.getElementById('m-resp').value, document.getElementById('m-area').value,
+        document.getElementById('m-cargo').value, document.getElementById('m-ubic').value,
+        document.getElementById('m-estado').value, nuevoProveedor, nuevaEmpresa,
         document.getElementById('m-obs').value
     ].map(val => val.replace(/,/g, '')); 
 
