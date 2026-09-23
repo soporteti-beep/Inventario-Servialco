@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventario TI - Servialco</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
+        .header { display: flex; align-items: center; background-color: #0D6BB4; color: white; padding: 15px 30px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .header img { height: 50px; margin-right: 20px; background-color: white; padding: 5px; border-radius: 4px; }
+        .header h1 { margin: 0; font-size: 24px; }
+        .search-container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        input[type="text"] { width: 100%; padding: 12px; font-size: 16px; border: 2px solid #A8D5E8; border-radius: 6px; box-sizing: border-box; outline: none; }
+        input[type="text"]:focus { border-color: #70C457; }
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.05); font-size: 14px;}
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #0D6BB4; color: white; font-weight: bold; position: sticky; top: 0; }
+        tr:nth-child(even) { background-color: #A8D5E8; } /* Fila alterna azul suave */
+        tr:hover { background-color: #e2f0f7; }
+        .badge { padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; color: white; }
+        .bg-asignado { background-color: #1B9B59; } /* Verde oscuro para asignados */
+        .bg-bodega { background-color: #70C457; } /* Verde claro para bodega */
+        .bg-default { background-color: #666; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <!-- Reemplaza la ruta si subes el logo con otra extensión -->
+        <img src="logo-servialco.png" alt="Logo Servialco">
+        <h1>Buscador de Inventario TI - GitOps</h1>
+    </div>
+
+    <div class="search-container">
+        <input type="text" id="buscador" onkeyup="filtrarTabla()" placeholder="Buscar por Serial, Responsable, Equipo, Proveedor...">
+    </div>
+
+    <div style="overflow-x:auto;">
+        <table id="tablaInventario">
+            <thead>
+                <tr id="filas-cabecera">
+                    <!-- Los encabezados se cargarán automáticamente -->
+                </tr>
+            </thead>
+            <tbody id="cuerpo-tabla">
+                <!-- Los datos se cargarán aquí -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Función para leer el CSV y generar la tabla
+        async function cargarInventario() {
+            try {
+                // Forzamos un parámetro de fecha en la URL para evitar que el navegador guarde la caché antigua
+                const response = await fetch('inventario.csv?' + new Date().getTime()); 
+                const data = await response.text();
+                
+                const filas = data.split('\n').filter(row => row.trim().length > 0);
+                if(filas.length === 0) return;
+
+                const encabezados = filas[0].split(',');
+                
+                // Pintar encabezados
+                let htmlCabecera = '';
+                encabezados.forEach(encabezado => {
+                    htmlCabecera += `<th>${encabezado.toUpperCase().replace('_', ' ')}</th>`;
+                });
+                document.getElementById('filas-cabecera').innerHTML = htmlCabecera;
+
+                // Pintar datos
+                let htmlCuerpo = '';
+                for (let i = 1; i < filas.length; i++) {
+                    const columnas = filas[i].split(',');
+                    htmlCuerpo += '<tr>';
+                    columnas.forEach((celda, index) => {
+                        let contenido = celda;
+                        // Si es la columna de estado (índice 11 basado en tu estructura actual)
+                        if (encabezados[index] === 'estado') {
+                            let claseBadge = 'bg-default';
+                            if (celda === 'ASIGNADO') claseBadge = 'bg-asignado';
+                            else if (celda === 'BODEGA') claseBadge = 'bg-bodega';
+                            contenido = `<span class="badge ${claseBadge}">${celda}</span>`;
+                        }
+                        htmlCuerpo += `<td>${contenido}</td>`;
+                    });
+                    htmlCuerpo += '</tr>';
+                }
+                document.getElementById('cuerpo-tabla').innerHTML = htmlCuerpo;
+
+            } catch (error) {
+                console.error("Error cargando el inventario:", error);
+                document.getElementById('cuerpo-tabla').innerHTML = '<tr><td colspan="20">Error cargando los datos. Verifica que inventario.csv existe.</td></tr>';
+            }
+        }
+
+        // Buscador en tiempo real
+        function filtrarTabla() {
+            let input = document.getElementById("buscador");
+            let filtro = input.value.toUpperCase();
+            let tabla = document.getElementById("tablaInventario");
+            let tr = tabla.getElementsByTagName("tr");
+
+            for (let i = 1; i < tr.length; i++) {
+                let filaMostrada = false;
+                let td = tr[i].getElementsByTagName("td");
+                for (let j = 0; j < td.length; j++) {
+                    if (td[j]) {
+                        if (td[j].innerHTML.toUpperCase().indexOf(filtro) > -1) {
+                            filaMostrada = true;
+                            break;
+                        }
+                    }
+                }
+                tr[i].style.display = filaMostrada ? "" : "none";
+            }
+        }
+
+        // Cargar al iniciar la página
+        window.onload = cargarInventario;
+    </script>
+</body>
+</html>
