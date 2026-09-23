@@ -41,21 +41,18 @@ function pintarTabla(datos) {
     datos.forEach(fila => {
         let estadoActual = idxEstado > -1 ? fila.data[idxEstado].trim().toUpperCase() : '';
         
-        // Etiquetamos la fila con su grupo y su estado para facilitar el filtro
         htmlCuerpo += `<tr class="fila-dato" data-grupo="${fila.grupo}" data-estado="${estadoActual}">`;
         
         fila.data.forEach((celda, index) => {
             let contenido = celda;
             
-            // Badge para la columna de Estado
             if (index === idxEstado) {
                 let claseBadge = celda === 'ASIGNADO' ? 'bg-asignado' : (celda === 'BODEGA' ? 'bg-bodega' : 'bg-default');
                 contenido = `<span class="badge ${claseBadge}">${celda}</span>`;
             }
             
-            // Convertimos el Serial en un Enlace Clicable para ver el historial
             if (index === idxSerial && celda.trim() !== '') {
-                contenido = `<a href="javascript:void(0)" onclick="verHistorial('${celda}')" style="color: #0D6BB4; font-weight: bold; text-decoration: underline;" title="Ver historial de cambios">${celda}</a>`;
+                contenido = `<a href="javascript:void(0)" onclick="verHistorial('${celda}')" style="color: #0D6BB4; font-weight: bold; text-decoration: underline;" title="Ver historial">${celda}</a>`;
             }
             
             htmlCuerpo += `<td>${contenido}</td>`;
@@ -69,7 +66,6 @@ function filtrarPorPestana(grupo, btn) {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     
-    // Limpiamos los filtros al cambiar de pestaña
     document.getElementById("buscador").value = '';
     document.getElementById("filtro-estado").value = '';
     
@@ -90,9 +86,6 @@ function filtrarTabla() {
     });
 }
 
-/* =========================================
-   NUEVO: MOTOR DE HISTORIAL (TRAZABILIDAD)
-===========================================*/
 async function verHistorial(serialBuscado) {
     try {
         document.getElementById('historial-serial').innerText = serialBuscado;
@@ -106,14 +99,12 @@ async function verHistorial(serialBuscado) {
         let htmlHistorial = '';
         let hayRegistros = false;
         
-        // Empezamos desde i=1 para saltar los encabezados de la bitácora
         for(let i=1; i<filas.length; i++) {
             let cols = filas[i].split(',');
             let colSerial = cols[1] ? cols[1].trim() : '';
             
             if(colSerial === serialBuscado) {
                 hayRegistros = true;
-                // Formato bitácora: fecha(0), serial(1), evento(2), resp(3), area(4), cargo(5), ubic(6), estado(7), prov(8), emp(9), obs(10)
                 htmlHistorial += `<tr style="border-bottom: 1px solid #ddd;">
                     <td style="padding: 10px;">${cols[0] || ''}</td>
                     <td style="padding: 10px;"><strong>${cols[2] || ''}</strong></td>
@@ -126,12 +117,11 @@ async function verHistorial(serialBuscado) {
         }
         
         if(!hayRegistros) {
-            htmlHistorial = '<tr><td colspan="6" style="text-align:center; padding: 20px;">No hay registros de cambios en la bitácora para este equipo.</td></tr>';
+            htmlHistorial = '<tr><td colspan="6" style="text-align:center; padding: 20px;">No hay registros de cambios en la bitácora.</td></tr>';
         }
         
         document.getElementById('cuerpo-historial').innerHTML = htmlHistorial;
     } catch(e) {
-        console.error("Error al cargar historial:", e);
         document.getElementById('cuerpo-historial').innerHTML = '<tr><td colspan="6" style="text-align:center; color:red; padding: 20px;">Error al cargar el historial.</td></tr>';
     }
 }
@@ -140,9 +130,6 @@ function cerrarHistorial() {
     document.getElementById('modalHistorial').style.display = 'none';
 }
 
-/* =========================================
-   MÉTODOS DEL MODAL DE ACTUALIZACIÓN
-===========================================*/
 function abrirModal() { 
     document.getElementById('miModal').style.display = 'block'; 
     ajustarFormulario();
