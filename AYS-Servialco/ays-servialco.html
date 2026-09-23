@@ -2,65 +2,15 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventario AYS - Servialco</title>
-    <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
-        
-        /* Navegación entre módulos */
-        .nav-modules { display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .nav-modules a { text-decoration: none; padding: 10px 20px; border-radius: 5px; color: #555; font-weight: bold; background: #e9ecef; transition: 0.3s; white-space: nowrap; }
-        .nav-modules a:hover { background: #E67E22; color: white; }
-        .nav-modules a.active { background: #E67E22; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-
-        .header { display: flex; align-items: center; justify-content: space-between; background-color: #E67E22; color: white; padding: 15px 30px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .header-left { display: flex; align-items: center; }
-        .header img { height: 50px; margin-right: 20px; background-color: white; padding: 5px; border-radius: 4px; }
-        .header h1 { margin: 0; font-size: 24px; }
-        
-        .btn-accion { background-color: #f4f7f6; color: #E67E22; border: 2px solid white; padding: 10px 20px; border-radius: 5px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.2);}
-        .btn-accion:hover { background-color: #fdebd0; }
-
-        .search-container { display: flex; gap: 15px; margin-bottom: 20px; }
-        input[type="text"].buscador { flex-grow: 1; padding: 12px; font-size: 16px; border: 2px solid #f5b041; border-radius: 6px; outline: none; }
-        input[type="text"].buscador:focus { border-color: #E67E22; }
-        select.filtro-estado { padding: 12px; font-size: 16px; border: 2px solid #f5b041; border-radius: 6px; outline: none; cursor: pointer; font-weight: bold; color: #333;}
-        
-        .tabs { display: flex; gap: 5px; margin-bottom: 10px; overflow-x: auto; padding-bottom: 5px; }
-        .tab-btn { background-color: #e0e0e0; border: none; padding: 10px 20px; cursor: pointer; border-radius: 8px 8px 0 0; font-weight: bold; color: #333; transition: 0.3s; white-space: nowrap; }
-        .tab-btn:hover { background-color: #f5b041; }
-        .tab-btn.active { background-color: #E67E22; color: white; }
-
-        .titulo-seccion { background-color: #fdebd0; color: #d35400; padding: 10px 20px; margin: 20px 0 10px 0; border-radius: 6px; font-size: 18px; border-left: 5px solid #E67E22; display: flex; align-items: center; gap: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);}
-        
-        table { width: 100%; border-collapse: collapse; background: white; border-radius: 0 8px 8px 8px; overflow: hidden; font-size: 13px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);}
-        th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #ddd; }
-        th { background-color: #E67E22; color: white; font-weight: bold; position: sticky; top: 0; white-space: nowrap; z-index: 2;}
-        tr:nth-child(even) { background-color: #fcf3e8; }
-        tr:hover { background-color: #fae5d3; }
-        .badge { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; color: white; display: inline-block;}
-        .bg-asignado { background-color: #1B9B59; } .bg-bodega { background-color: #70C457; } .bg-default { background-color: #666; }
-
-        /* Modales */
-        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
-        .modal-content { background-color: #fff; margin: 5% auto; padding: 25px; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
-        .modal-header { font-size: 20px; font-weight: bold; color: #E67E22; margin-bottom: 15px; border-bottom: 2px solid #f5b041; padding-bottom: 10px;}
-        .modal-footer { margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px; }
-        .btn-cancelar { background-color: #ccc; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold;}
-        .btn-guardar { background-color: #E67E22; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold;}
-        
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .form-group { display: flex; flex-direction: column; }
-        .form-group label { font-size: 12px; font-weight: bold; color: #555; margin-bottom: 5px; }
-        .form-group input, .form-group select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; outline: none; }
-    </style>
+    <title>Inventario AYS</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>:root { --tema-color: #E67E22; }</style>
 </head>
 <body>
 
-    <!-- MENÚ DE NAVEGACIÓN CORREGIDO (Usa ../ para navegar entre carpetas) -->
     <div class="nav-modules">
         <a href="../index.html">📋 Todos los Equipos</a>
-        <a href="../Servialco/servialco.html">🏢 PROPIO - SERVIALCO</a>
+        <a href="../Servialco/servialco.html">🏢 SERVIALCO</a>
         <a href="ays-servialco.html" class="active">🏢 AYS</a>
         <a href="../UNICAT/unicat.html">🏢 UNICAT</a>
         <a href="../ARKY/arky.html">🏢 ARKY</a>
@@ -68,423 +18,65 @@
 
     <div class="header">
         <div class="header-left">
-            <!-- RUTA DEL LOGO ACTUALIZADA (Sale a la raíz ../) -->
-            <img src="../logo-servialco.png" alt="Logo Servialco" onerror="this.style.display='none'">
+            <img src="../logo-servialco.png" alt="Logo" onerror="this.style.display='none'">
             <h1>Módulo: Equipos Alquilados (AYS)</h1>
         </div>
         <button class="btn-accion" onclick="abrirModal()">+ Actualizar Bitácora (AYS)</button>
     </div>
 
     <div class="search-container">
-        <input type="text" id="buscador" class="buscador" onkeyup="filtrarTabla()" placeholder="Buscar equipo, monitor, serial o responsable...">
+        <input type="text" id="buscador" class="buscador" onkeyup="filtrarTabla()" placeholder="Buscar equipo, serial o responsable...">
         <select id="filtro-estado" class="filtro-estado" onchange="filtrarTabla()">
             <option value="">Todos los Estados</option>
             <option value="ASIGNADO">Asignados</option>
             <option value="BODEGA">En Bodega</option>
-            <option value="DEVUELTO">Devueltos a Proveedor</option>
+            <option value="DEVUELTO">Devueltos</option>
             <option value="SOPORTE">En Soporte</option>
         </select>
     </div>
 
-    <div class="tabs" id="tabs-container"></div>
-
-    <!-- SECCIÓN: PORTÁTILES -->
-    <div id="sec-portatiles" style="display:none;">
-        <h2 class="titulo-seccion">💻 Equipos Portátiles</h2>
-        <div style="overflow-x:auto; margin-bottom: 30px;">
-            <table>
-                <thead><tr class="filas-cabecera"></tr></thead>
-                <tbody id="cuerpo-portatiles"></tbody>
-            </table>
-        </div>
+    <div id="sec-computadores" style="display:none;">
+        <h2 class="titulo-seccion">💻 Computadores</h2>
+        <div style="overflow-x:auto;"><table><thead><tr class="filas-cabecera"></tr></thead><tbody id="cuerpo-computadores"></tbody></table></div>
     </div>
 
-    <!-- SECCIÓN: ESCRITORIOS -->
-    <div id="sec-escritorios" style="display:none;">
-        <h2 class="titulo-seccion">🖥️ Equipos de Escritorio y Torres</h2>
-        <div style="overflow-x:auto; margin-bottom: 30px;">
-            <table>
-                <thead><tr class="filas-cabecera"></tr></thead>
-                <tbody id="cuerpo-escritorios"></tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- SECCIÓN: MONITORES -->
     <div id="sec-monitores" style="display:none;">
-        <h2 class="titulo-seccion">📺 Monitores (Alquilados AYS)</h2>
-        <div style="overflow-x:auto; margin-bottom: 30px;">
-            <table>
-                <thead><tr class="filas-cabecera"></tr></thead>
-                <tbody id="cuerpo-monitores"></tbody>
-            </table>
-        </div>
+        <h2 class="titulo-seccion">📺 Monitores</h2>
+        <div style="overflow-x:auto;"><table><thead><tr class="filas-cabecera"></tr></thead><tbody id="cuerpo-monitores"></tbody></table></div>
     </div>
 
     <!-- MODAL BITÁCORA -->
     <div id="miModal" class="modal">
-        <div class="modal-content" style="width: 50%; max-width: 650px;">
-            <div class="modal-header">Registrar Evento (Solo Activos AYS)</div>
+        <div class="modal-content" style="width: 50%; max-width: 600px;">
+            <div class="modal-header">Registrar Evento (AYS)</div>
             <div class="form-grid">
-                <div class="form-group">
-                    <label>Fecha del Evento*</label>
-                    <input type="date" id="m-fecha" required>
-                </div>
-                <div class="form-group">
-                    <label>Serial del Activo (Fábrica)*</label>
-                    <input type="text" id="m-serial" placeholder="Ej: 5CG0527Q2L..." required>
-                </div>
-                <div class="form-group">
-                    <label>Tipo de Evento*</label>
-                    <select id="m-evento" onchange="ajustarFormulario()">
-                        <option value="CAMBIO_USUARIO">Cambio de Responsable</option>
-                        <option value="CREACION_NUEVO">Ingreso Activo Nuevo</option>
-                        <option value="DEVOLUCION_PROVEEDOR">Devolución Proveedor</option>
-                        <option value="REPARACION">Reparación/Soporte</option>
-                    </select>
-                </div>
-                <div class="form-group" id="grupo-tipo-activo" style="display: none;">
-                     <label>Tipo de Activo (Solo Nuevos)*</label>
-                     <select id="m-tipo">
-                         <option value="PORTATIL">Computador Portátil</option>
-                         <option value="ESCRITORIO">Computador de Escritorio / Torre</option>
-                         <option value="MONITOR">Monitor Independiente</option>
-                     </select>
-                </div>
-                <div class="form-group"><label>Nuevo Responsable</label><input type="text" id="m-resp" placeholder="Nombre o 'N/A'"></div>
-                <div class="form-group"><label>Nueva Área</label><input type="text" id="m-area"></div>
-                <div class="form-group"><label>Nuevo Cargo</label><input type="text" id="m-cargo"></div>
-                <div class="form-group"><label>Nueva Ubicación</label><input type="text" id="m-ubic"></div>
-                <div class="form-group">
-                    <label>Nuevo Estado</label>
-                    <select id="m-estado">
-                        <option value="ASIGNADO">ASIGNADO</option>
-                        <option value="BODEGA">BODEGA</option>
-                        <option value="DEVUELTO">DEVUELTO PROVEEDOR</option>
-                        <option value="SOPORTE">EN SOPORTE</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Empresa Destino*</label>
-                    <select id="m-empresa">
-                        <option value="CONSTRUSALCO">CONSTRUSALCO</option>
-                        <option value="SERVIALCO">SERVIALCO</option>
-                    </select>
-                </div>
+                <div class="form-group"><label>Fecha*</label><input type="date" id="m-fecha" required></div>
+                <div class="form-group"><label>Serial Fábrica*</label><input type="text" id="m-serial" required></div>
+                <div class="form-group"><label>Evento*</label><select id="m-evento"><option value="CAMBIO_USUARIO">Cambio Responsable</option><option value="CREACION_NUEVO">Nuevo</option><option value="DEVOLUCION_PROVEEDOR">Devolución</option></select></div>
+                <div class="form-group"><label>Empresa Destino</label><select id="m-empresa"><option value="CONSTRUSALCO">CONSTRUSALCO</option><option value="SERVIALCO">SERVIALCO</option></select></div>
+                <div class="form-group"><label>Responsable</label><input type="text" id="m-resp"></div>
+                <div class="form-group"><label>Área</label><input type="text" id="m-area"></div>
+                <div class="form-group"><label>Cargo</label><input type="text" id="m-cargo"></div>
+                <div class="form-group"><label>Ubicación</label><input type="text" id="m-ubic"></div>
+                <div class="form-group"><label>Estado</label><select id="m-estado"><option value="ASIGNADO">ASIGNADO</option><option value="BODEGA">BODEGA</option><option value="DEVUELTO">DEVUELTO</option></select></div>
             </div>
-            <div class="form-group" style="margin-top:15px; width:100%;">
-                <label>Observaciones</label>
-                <input type="text" id="m-obs" placeholder="Motivo del evento...">
-            </div>
+            <div class="form-group" style="margin-top:10px;"><label>Observaciones</label><input type="text" id="m-obs"></div>
             <div class="modal-footer">
                 <button class="btn-cancelar" onclick="cerrarModal()">Cancelar</button>
-                <button class="btn-guardar" onclick="guardarEnGitHub()">💾 Guardar Evento</button>
+                <button class="btn-guardar" onclick="guardarEnGitHub('AYS', document.getElementById('m-empresa').value)">💾 Guardar Evento</button>
             </div>
         </div>
     </div>
 
-    <!-- MODAL HISTORIAL -->
     <div id="modalHistorial" class="modal">
-        <div class="modal-content" style="width: 80%; max-width: 900px;">
-            <div class="modal-header">Trazabilidad del Activo: <span id="historial-serial" style="color:#d35400;"></span></div>
-            <div style="overflow-x:auto; max-height: 400px; overflow-y: auto;">
-                <table style="width: 100%; border-collapse: collapse;">
-                    <thead>
-                        <tr>
-                            <th style="background-color:#fdebd0; color:#333;">Fecha</th>
-                            <th style="background-color:#fdebd0; color:#333;">Evento</th>
-                            <th style="background-color:#fdebd0; color:#333;">Responsable</th>
-                            <th style="background-color:#fdebd0; color:#333;">Ubicación</th>
-                            <th style="background-color:#fdebd0; color:#333;">Estado</th>
-                            <th style="background-color:#fdebd0; color:#333;">Observaciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="cuerpo-historial"></tbody>
-                </table>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-cancelar" onclick="cerrarHistorial()">Cerrar Historial</button>
-            </div>
+        <div class="modal-content" style="width: 80%;">
+            <div class="modal-header">Historial: <span id="historial-serial"></span></div>
+            <div style="overflow-x:auto; max-height: 300px;"><table style="width:100%;"><thead><tr><th>Fecha</th><th>Evento</th><th>Responsable</th><th>Ubicación</th><th>Estado</th><th>Obs</th></tr></thead><tbody id="cuerpo-historial"></tbody></table></div>
+            <div class="modal-footer"><button class="btn-cancelar" onclick="cerrarHistorial()">Cerrar</button></div>
         </div>
     </div>
 
-    <script>
-        const GITHUB_USER = 'soporteti-beep';
-        const GITHUB_REPO = 'Inventario-Servialco';
-        let encabezadosGlobales = [];
-        let datosGlobales = [];
-
-        window.onload = () => { cargarInventario(); };
-
-        async function cargarInventario() {
-            try {
-                // RUTA: ays-servialco.csv está en la misma carpeta que este HTML
-                const response = await fetch('ays-servialco.csv?' + new Date().getTime()); 
-                const data = await response.text();
-                const filas = data.split('\n').filter(row => row.trim().length > 0);
-                if(filas.length === 0) return;
-
-                const separador = filas[0].includes(';') ? ';' : ',';
-                encabezadosGlobales = filas[0].split(separador);
-                
-                let htmlCabecera = '';
-                encabezadosGlobales.forEach((h) => {
-                    if (h === 'serial') return; // Ocultamos el serial de fábrica en AYS
-                    let nombreMostrar = h.toUpperCase().replace(/_/g, ' ');
-                    if (h === 'serial_proveedor') nombreMostrar = 'SERIAL AYS'; 
-                    htmlCabecera += `<th>${nombreMostrar}</th>`;
-                });
-                
-                document.querySelectorAll('.filas-cabecera').forEach(el => el.innerHTML = htmlCabecera);
-
-                let gruposUnicos = new Set();
-                datosGlobales = [];
-
-                for (let i = 1; i < filas.length; i++) {
-                    const columnas = filas[i].split(separador);
-                    const proveedor = columnas[5] ? columnas[5].trim() : 'AYS';
-                    const empresa = columnas[6] ? columnas[6].trim() : 'S/E';
-                    const etiquetaGrupo = `${proveedor} - ${empresa}`;
-                    
-                    gruposUnicos.add(etiquetaGrupo);
-                    datosGlobales.push({ data: columnas, grupo: etiquetaGrupo });
-                }
-                
-                const tabsContainer = document.getElementById('tabs-container');
-                tabsContainer.innerHTML = `<button class="tab-btn active" onclick="filtrarPorPestana('TODOS', this)">TODOS (AYS)</button>`;
-                
-                Array.from(gruposUnicos).sort().forEach(grupo => {
-                    if(grupo !== " - ") tabsContainer.innerHTML += `<button class="tab-btn" onclick="filtrarPorPestana('${grupo}', this)">${grupo}</button>`;
-                });
-
-                pintarTablas(datosGlobales);
-                filtrarTabla();
-            } catch (e) { console.error("Error cargando base de datos", e); }
-        }
-
-        function pintarTablas(datos) {
-            let htmlPortatiles = '';
-            let htmlEscritorios = '';
-            let htmlMonitores = '';
-
-            let idxEstado = encabezadosGlobales.indexOf('estado');
-            let idxSerialOrig = encabezadosGlobales.indexOf('serial');
-            let idxSerialProv = encabezadosGlobales.indexOf('serial_proveedor');
-            let idxTipo = encabezadosGlobales.indexOf('tipo');
-
-            datos.forEach(fila => {
-                let celdas = fila.data;
-                let estadoActual = idxEstado > -1 && celdas[idxEstado] ? celdas[idxEstado].trim().toUpperCase() : '';
-                let valSerialOrig = idxSerialOrig > -1 && celdas[idxSerialOrig] ? celdas[idxSerialOrig].trim() : '';
-                let valSerialProv = idxSerialProv > -1 && celdas[idxSerialProv] ? celdas[idxSerialProv].trim() : '';
-                let tipoVal = idxTipo > -1 && celdas[idxTipo] ? celdas[idxTipo].trim().toUpperCase() : '';
-
-                let claseFila = 'fila-otros';
-                if (tipoVal.includes('PORTATIL')) claseFila = 'fila-portatil';
-                else if (tipoVal.includes('ESCRITORIO') || tipoVal.includes('TORRE') || tipoVal.includes('CPU') || tipoVal.includes('COMPUTADOR')) claseFila = 'fila-escritorio';
-                else if (tipoVal.includes('MONITOR') || tipoVal.includes('PANTALLA')) claseFila = 'fila-monitor';
-
-                let filaHtml = `<tr class="fila-dato ${claseFila}" data-grupo="${fila.grupo}" data-estado="${estadoActual}">`;
-                
-                celdas.forEach((celda, index) => {
-                    if (index === idxSerialOrig) return; // Saltamos el original
-
-                    let contenido = celda || '';
-                    if (index === idxEstado) {
-                        let claseBadge = contenido === 'ASIGNADO' ? 'bg-asignado' : (contenido === 'BODEGA' ? 'bg-bodega' : (contenido === 'DEVUELTO' ? 'bg-default' : 'bg-default'));
-                        if (contenido === 'SOPORTE') claseBadge = 'bg-default';
-                        contenido = `<span class="badge ${claseBadge}">${contenido}</span>`;
-                    }
-                    
-                    // En AYS, usamos el serial proveedor (SERIAL AYS) para el enlace al historial
-                    if (index === idxSerialProv) {
-                        let serialAMostrar = contenido.trim() !== '' ? contenido : valSerialOrig;
-                        contenido = `<a href="javascript:void(0)" onclick="verHistorial('${valSerialOrig}', '${valSerialProv}')" style="color: #d35400; font-weight: bold; text-decoration: underline;">${serialAMostrar}</a>`;
-                    }
-                    
-                    filaHtml += `<td>${contenido}</td>`;
-                });
-                filaHtml += '</tr>';
-
-                if (claseFila === 'fila-portatil') htmlPortatiles += filaHtml;
-                else if (claseFila === 'fila-escritorio') htmlEscritorios += filaHtml;
-                else if (claseFila === 'fila-monitor') htmlMonitores += filaHtml;
-            });
-
-            document.getElementById('cuerpo-portatiles').innerHTML = htmlPortatiles;
-            document.getElementById('cuerpo-escritorios').innerHTML = htmlEscritorios;
-            document.getElementById('cuerpo-monitores').innerHTML = htmlMonitores;
-        }
-
-        function filtrarPorPestana(grupo, btn) {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            document.getElementById("buscador").value = '';
-            document.getElementById("filtro-estado").value = '';
-            filtrarTabla();
-        }
-
-        function filtrarTabla() {
-            let filtroGlobal = document.getElementById("buscador").value.toUpperCase();
-            let filtroEstado = document.getElementById("filtro-estado").value.toUpperCase();
-            let grupoActivo = document.querySelector('.tab-btn.active').innerText;
-
-            let countP = 0, countE = 0, countM = 0;
-
-            document.querySelectorAll('.fila-dato').forEach(fila => {
-                let coincidePestana = (grupoActivo.includes('TODOS') || fila.getAttribute('data-grupo') === grupoActivo);
-                let coincideEstado = (filtroEstado === "" || fila.getAttribute('data-estado') === filtroEstado);
-                let coincideGlobal = fila.innerText.toUpperCase().includes(filtroGlobal);
-                
-                if (coincidePestana && coincideEstado && coincideGlobal) {
-                    fila.style.display = "";
-                    if (fila.classList.contains('fila-portatil')) countP++;
-                    else if (fila.classList.contains('fila-escritorio')) countE++;
-                    else if (fila.classList.contains('fila-monitor')) countM++;
-                } else {
-                    fila.style.display = "none";
-                }
-            });
-
-            document.getElementById('sec-portatiles').style.display = countP > 0 ? 'block' : 'none';
-            document.getElementById('sec-escritorios').style.display = countE > 0 ? 'block' : 'none';
-            document.getElementById('sec-monitores').style.display = countM > 0 ? 'block' : 'none';
-        }
-
-        function abrirModal() { 
-            document.getElementById('miModal').style.display = 'block'; 
-            const hoy = new Date().toISOString().split('T')[0];
-            document.getElementById('m-fecha').value = hoy;
-            ajustarFormulario();
-        }
-
-        function cerrarModal() { document.getElementById('miModal').style.display = 'none'; }
-
-        function ajustarFormulario() {
-            let evento = document.getElementById('m-evento').value;
-            let resp = document.getElementById('m-resp');
-            let area = document.getElementById('m-area');
-            let cargo = document.getElementById('m-cargo');
-            let estado = document.getElementById('m-estado');
-            let grupoTipo = document.getElementById('grupo-tipo-activo');
-
-            resp.disabled = false; area.disabled = false; cargo.disabled = false;
-            
-            if (evento === 'CREACION_NUEVO') {
-                grupoTipo.style.display = 'block';
-                estado.value = 'BODEGA';
-            } else {
-                grupoTipo.style.display = 'none';
-            }
-
-            if (evento === 'DEVOLUCION_PROVEEDOR') {
-                resp.value = 'PROVEEDOR'; resp.disabled = true;
-                area.value = 'N/A'; area.disabled = true;
-                cargo.value = 'N/A'; cargo.disabled = true;
-                estado.value = 'DEVUELTO';
-            } else if (evento === 'REPARACION') {
-                estado.value = 'SOPORTE';
-            } else if (evento !== 'CREACION_NUEVO') {
-                estado.value = 'ASIGNADO';
-            }
-        }
-
-        function cerrarHistorial() { document.getElementById('modalHistorial').style.display = 'none'; }
-
-        async function verHistorial(serialPrincipal, serialProv) {
-            try {
-                let tituloMostrar = serialProv ? `SERIAL AYS: ${serialProv} (Fábrica: ${serialPrincipal})` : serialPrincipal;
-                document.getElementById('historial-serial').innerText = tituloMostrar;
-                document.getElementById('cuerpo-historial').innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 20px;">Consultando bitácora... ⏳</td></tr>';
-                document.getElementById('modalHistorial').style.display = 'block';
-
-                // RUTA HACIA LA RAÍZ (../) PARA BUSCAR LA BITÁCORA MAESTRA
-                const response = await fetch('../bitacora.csv?' + new Date().getTime());
-                const data = await response.text();
-                const filas = data.split('\n').filter(row => row.trim().length > 0);
-                
-                let htmlHistorial = '';
-                let hayRegistros = false;
-                
-                for(let i=1; i<filas.length; i++) {
-                    let sep = filas[i].includes(';') ? ';' : ',';
-                    let cols = filas[i].split(sep);
-                    let colSerial = cols[1] ? cols[1].trim() : '';
-                    
-                    if(colSerial === serialPrincipal || (serialProv && colSerial === serialProv)) {
-                        hayRegistros = true;
-                        htmlHistorial += `<tr style="border-bottom: 1px solid #ddd;">
-                            <td style="padding: 10px;">${cols[0] || ''}</td>
-                            <td style="padding: 10px;"><strong>${cols[2] || ''}</strong></td>
-                            <td style="padding: 10px;">${cols[3] || ''}</td>
-                            <td style="padding: 10px;">${cols[6] || ''}</td>
-                            <td style="padding: 10px;"><span class="badge bg-default">${cols[7] || ''}</span></td>
-                            <td style="padding: 10px;">${cols[10] || ''}</td>
-                        </tr>`;
-                    }
-                }
-                if(!hayRegistros) htmlHistorial = '<tr><td colspan="6" style="text-align:center; padding: 20px;">No hay registros en la bitácora.</td></tr>';
-                document.getElementById('cuerpo-historial').innerHTML = htmlHistorial;
-            } catch(e) { document.getElementById('cuerpo-historial').innerHTML = '<tr><td colspan="6" style="text-align:center; color:red; padding: 20px;">Error al cargar.</td></tr>'; }
-        }
-
-        async function guardarEnGitHub() {
-            const serial = document.getElementById('m-serial').value.trim();
-            const fecha = document.getElementById('m-fecha').value;
-            const evento = document.getElementById('m-evento').value;
-
-            if(!fecha || !serial) { alert("Fecha y Serial son obligatorios."); return; }
-
-            let token = localStorage.getItem('gh_token');
-            if (!token) {
-                token = prompt('Ingresa tu GitHub Personal Access Token (PAT):');
-                if (!token) return;
-                localStorage.setItem('gh_token', token);
-            }
-
-            document.querySelector('.modal-footer .btn-guardar').innerText = "Guardando... ⏳";
-            
-            const nuevoProveedor = 'AYS';
-            const nuevaEmpresa = document.getElementById('m-empresa').value.trim();
-            const tipoActivo = evento === 'CREACION_NUEVO' ? document.getElementById('m-tipo').value : '';
-
-            const data = [
-                fecha, serial, evento, document.getElementById('m-resp').value, 
-                document.getElementById('m-area').value, document.getElementById('m-cargo').value, 
-                document.getElementById('m-ubic').value, document.getElementById('m-estado').value, 
-                nuevoProveedor, nuevaEmpresa, document.getElementById('m-obs').value, tipoActivo
-            ].map(val => val.replace(/,/g, '')); 
-
-            try {
-                // RUTA DE LA API (Sigue intacta)
-                const getRes = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/bitacora.csv`, { headers: { 'Authorization': `token ${token}` }});
-                if (!getRes.ok) throw new Error("Fallo de autenticación. Verifica tu Token.");
-                
-                const fileData = await getRes.json();
-                const contenidoNuevo = decodeURIComponent(escape(atob(fileData.content))) + "\n" + data.join(',');
-
-                const putRes = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/bitacora.csv`, {
-                    method: 'PUT',
-                    headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        message: `🚀 Actualización desde módulo AYS: ${serial}`,
-                        content: btoa(unescape(encodeURIComponent(contenidoNuevo))),
-                        sha: fileData.sha
-                    })
-                });
-
-                if (putRes.ok) {
-                    alert('¡Evento registrado exitosamente! Recarga la página en unos segundos.');
-                    cerrarModal();
-                    document.querySelectorAll('input:not([disabled])').forEach(i => i.value = ''); 
-                } else throw new Error("No se pudo guardar.");
-            } catch (error) {
-                alert("Error: " + error.message);
-                localStorage.removeItem('gh_token'); 
-            } finally {
-                document.querySelector('.modal-footer .btn-guardar').innerText = "💾 Guardar Evento";
-            }
-        }
-    </script>
+    <script src="../js/main.js"></script>
+    <script>window.onload = () => { cargarModulo('ays-servialco.csv', true); };</script>
 </body>
 </html>
