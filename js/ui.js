@@ -6,8 +6,12 @@ function renderizarEncabezados() {
     let htmlCabecera = '';
     encabezadosGlobales.forEach((h, index) => {
         if (h === 'serial') return; // Ocultamos la de fábrica
+        // Ocultamos las columnas viejas de monitor ya que ahora serán filas independientes
+        if (h === 'monitor_marca' || h === 'monitor_serial') return; 
+        
         let nombreMostrar = h.toUpperCase().replace(/_/g, ' ');
         if (h === 'serial_proveedor') nombreMostrar = 'SERIAL AYS'; 
+        
         htmlCabecera += `<th>${nombreMostrar}</th>`;
     });
     document.getElementById('filas-cabecera').innerHTML = htmlCabecera;
@@ -37,6 +41,8 @@ function pintarTabla(datos) {
         
         fila.data.forEach((celda, index) => {
             if (index === idxSerialOrig) return; // Saltamos la original
+            // Saltamos las columnas viejas de monitor
+            if (encabezadosGlobales[index] === 'monitor_marca' || encabezadosGlobales[index] === 'monitor_serial') return;
 
             let contenido = celda;
             if (index === idxEstado) {
@@ -73,9 +79,17 @@ function ajustarFormulario() {
     let area = document.getElementById('m-area');
     let cargo = document.getElementById('m-cargo');
     let estado = document.getElementById('m-estado');
+    let grupoTipo = document.getElementById('grupo-tipo-activo');
 
     resp.disabled = false; area.disabled = false; cargo.disabled = false;
     
+    // Mostrar campo "Tipo de Activo" solo si estamos creando uno nuevo
+    if (evento === 'CREACION_NUEVO') {
+        grupoTipo.style.display = 'block';
+    } else {
+        grupoTipo.style.display = 'none';
+    }
+
     if (evento === 'DEVOLUCION_PROVEEDOR') {
         resp.value = 'PROVEEDOR'; resp.disabled = true;
         area.value = 'N/A'; area.disabled = true;
