@@ -56,7 +56,6 @@
 </head>
 <body>
 
-    <!-- MENÚ DE NAVEGACIÓN MAESTRO (Entra a las carpetas) -->
     <div class="nav-modules">
         <a href="index.html" class="active">📋 Todos los Equipos</a>
         <a href="Servialco/servialco.html">🏢 PROPIO - SERVIALCO</a>
@@ -159,7 +158,6 @@
                         <option value="SOPORTE">EN SOPORTE</option>
                     </select>
                 </div>
-                <!-- AQUÍ SÍ DEBES ELEGIR EL DESTINO, PORQUE ES EL PANEL GLOBAL -->
                 <div class="form-group">
                     <label>Empresa y Proveedor Destino*</label>
                     <select id="m-empresa">
@@ -217,8 +215,8 @@
 
         async function cargarInventario() {
             try {
-                // RUTA: Está en la raíz, lee el inventario maestro
-                const response = await fetch('inventario_sin_comillas.csv?' + new Date().getTime()); 
+                // CORRECCIÓN: Leer el inventario maestro correcto.
+                const response = await fetch('inventario.csv?' + new Date().getTime()); 
                 const data = await response.text();
                 const filas = data.split('\n').filter(row => row.trim().length > 0);
                 if(filas.length === 0) return;
@@ -360,9 +358,22 @@
             let cargo = document.getElementById('m-cargo');
             let estado = document.getElementById('m-estado');
             let grupoTipo = document.getElementById('grupo-tipo-activo');
+            let empresaSelect = document.getElementById('m-empresa');
 
             resp.disabled = false; area.disabled = false; cargo.disabled = false;
             
+            // REGLA DE NEGOCIO: Bloquear "PROPIO" si es "Devolución Proveedor"
+            Array.from(empresaSelect.options).forEach(opt => {
+                if (opt.value === 'PROPIO,SERVIALCO') {
+                    opt.disabled = (evento === 'DEVOLUCION_PROVEEDOR');
+                }
+            });
+
+            // Si estaba seleccionado PROPIO y ahora está deshabilitado, cambiamos a la siguiente opción
+            if (empresaSelect.value === 'PROPIO,SERVIALCO' && evento === 'DEVOLUCION_PROVEEDOR') {
+                empresaSelect.value = 'AYS,CONSTRUSALCO';
+            }
+
             if (evento === 'CREACION_NUEVO') {
                 grupoTipo.style.display = 'block';
                 estado.value = 'BODEGA';
@@ -436,7 +447,6 @@
 
             document.querySelector('.modal-footer .btn-guardar').innerText = "Guardando... ⏳";
             
-            // Aquí sí extraemos del desplegable porque es el módulo global
             const destinoSeleccionado = document.getElementById('m-empresa').value.split(',');
             const nuevoProveedor = destinoSeleccionado[0].trim();
             const nuevaEmpresa = destinoSeleccionado[1].trim();
