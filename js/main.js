@@ -4,14 +4,18 @@ let encabezadosGlobales = [];
 
 async function cargarModulo(csvUrl, esModuloYS) {
     try {
-        const response = await fetch(`${csvUrl}?${new Date().getTime()}`); 
-        const data = await response.text();
-        const filas = data.split('\n').filter(row => row.trim().length > 0);
-        if(filas.length === 0) return;
-
-        const separador = filas[0].includes(';') ? ';' : ',';
-        encabezadosGlobales = filas[0].split(separador);
+        const timestamp = new Date().getTime();
         
+        // 1. Cargar el CSV base del módulo
+        const responseCsv = await fetch(`${csvUrl}?${timestamp}`); 
+        const dataCsv = await responseCsv.text();
+        const filasCsv = dataCsv.split('\n').filter(row => row.trim().length > 0);
+        if(filasCsv.length === 0) return;
+
+        const separador = filasCsv[0].includes(';') ? ';' : ',';
+        encabezadosGlobales = filasCsv[0].split(separador);
+        
+        // Renderizar encabezados de la tabla
         let htmlCabecera = '';
         encabezadosGlobales.forEach((h) => {
             if (!esModuloYS && h === 'serial_proveedor') return; 
@@ -19,13 +23,84 @@ async function cargarModulo(csvUrl, esModuloYS) {
             if (esModuloYS && h === 'serial_proveedor') nombreMostrar = 'SERIAL PROVEEDOR';
             htmlCabecera += `<th>${nombreMostrar}</th>`;
         });
-        
         document.querySelectorAll('.filas-cabecera').forEach(el => el.innerHTML = htmlCabecera);
 
-        let datosModulo = [];
-        for (let i = 1; i < filas.length; i++) {
-            datosModulo.push({ data: filas[i].split(separador) });
+        // Indexar inventario base por Serial Principal y Serial Proveedor
+        let mapaInventario = {};
+        for (let i = 1; i < filasCsv.length; i++) {
+            let cols = filasCsv[i].split(separador);
+            let serialKey = cols[0] ? cols[0].trim().toUpperCase() : '';
+            if (serialKey) {
+                mapaInventario[serialKey] = cols;
+            }
         }
+
+        // 2. Cargar bitácora y sobreescribir con los últimos cambios registrados
+        try {
+            const responseBit = await fetch(`../bitacora.csv?${timestamp}`);
+            if (responseBit.ok) {
+                const dataBit = await responseBit.text();
+                const filasBit = dataBit.split('\n').filter(row => row.trim().length > 0);
+                
+                // Recorrer la bitácora en orden cronológico
+                for (let i = 1; i < filasBit.length; i++) {
+                    let sepBit = filasBit[i].includes(';') ? ';' : ',';
+                    let colsBit = filasBit[i].split(sepBit);
+                    if (colsBit.length < 10) continue;
+
+                    let bFecha = colsBit[0] ? colsBit[0].trim() : '';
+                    let bSerial = colsBit[1] ? colsBit[1].trim().toUpperCase() : '';
+                    let bEvento = colsBit[2] ? colsBit[2].trim().toUpperCase() : '';
+                    let bResp = colsBit[3] ? colsBit[3].trim() : '';
+                    let bArea = colsBit[4] ? colsBit[4].trim() : '';
+                    let bCargo = colsBit[5] ? colsBit[5].trim() : '';
+                    let bUbic = colsBit[6] ? colsBit[6].trim() : '';
+                    let bEstado = colsBit[7] ? colsBit[7].trim().toUpperCase() : '';
+                    let bObs = colsBit[10] ? colsBit[10].trim() : '';
+
+                    // Buscar el equipo en la base por Serial o por Serial Proveedor (en AYS)
+                    let equipoEncontrado = null;
+                    if (mapaInventario[bSerial]) {
+                        equipoEncontrado = mapaInventario[bSerial];
+                    } else {
+                        // Búsqueda por Serial Proveedor (columna 13)
+                        let idxProv = encabezadosGlobales.indexOf('serial_proveedor');
+                        if (idxProv > -1) {
+                            for (let k in mapaInventario) {
+                                if (mapaInventario[k][idxProv] && mapaInventario[k][idxProv].trim().toUpperCase() === bSerial) {
+                                    equipoEncontrado = mapaInventario[k];
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    // Actualizar datos del equipo en tiempo real
+                    if (equipoEncontrado) {
+                        let idxResp = encabezadosGlobales.indexOf('responsable');
+                        let idxArea = encabezadosGlobales.indexOf('area');
+                        let idxCargo = encabezadosGlobales.indexOf('cargo');
+                        let idxUbic = encabezadosGlobales.indexOf('ubicacion');
+                        let idxEstado = encabezadosGlobales.indexOf('estado');
+                        let idxObs = encabezadosGlobales.indexOf('observaciones');
+                        let idxFecha = encabezadosGlobales.indexOf('ultima_actualizacion');
+
+                        if (idxResp > -1 && bResp) equipoEncontrado[idxResp] = bResp;
+                        if (idxArea > -1 && bArea) equipoEncontrado[idxArea] = bArea;
+                        if (idxCargo > -1 && bCargo) equipoEncontrado[idxCargo] = bCargo;
+                        if (idxUbic > -1 && bUbic) equipoEncontrado[idxUbic] = bUbic;
+                        if (idxEstado > -1 && bEstado) equipoEncontrado[idxEstado] = bEstado;
+                        if (idxObs > -1 && bObs) equipoEncontrado[idxObs] = bObs;
+                        if (idxFecha > -1 && bFecha) equipoEncontrado[idxFecha] = bFecha;
+                    }
+                }
+            }
+        } catch (errBit) {
+            console.warn("No se pudo sincronizar con bitácora en vivo:", errBit);
+        }
+
+        // Convertir objeto de nuevo a lista para pintar las tablas
+        let datosModulo = Object.values(mapaInventario).map(cols => ({ data: cols }));
         
         pintarTablas(datosModulo, esModuloYS);
         filtrarTabla();
@@ -38,15 +113,16 @@ function pintarTablas(datos, esModuloYS) {
 
     let idxEstado = encabezadosGlobales.indexOf('estado');
     let idxSerial = encabezadosGlobales.indexOf('serial');
+    let idxSerialProv = encabezadosGlobales.indexOf('serial_proveedor');
     let idxTipo = encabezadosGlobales.indexOf('tipo');
 
     datos.forEach(fila => {
         let celdas = fila.data;
         let estadoActual = idxEstado > -1 && celdas[idxEstado] ? celdas[idxEstado].trim().toUpperCase() : '';
         let valSerial = idxSerial > -1 && celdas[idxSerial] ? celdas[idxSerial].trim() : '';
+        let valSerialProv = idxSerialProv > -1 && celdas[idxSerialProv] ? celdas[idxSerialProv].trim() : '';
         let tipoVal = idxTipo > -1 && celdas[idxTipo] ? celdas[idxTipo].trim().toUpperCase() : '';
 
-        // CORRECCIÓN CLAVE: Clasificación amplia para no perder PROBOOK, THINKPAD, etc.
         let esMonitor = tipoVal.includes('MONITOR') || tipoVal.includes('PANTALLA');
 
         let filaHtml = `<tr class="fila-dato ${esMonitor ? 'fila-monitor' : 'fila-comp'}" data-estado="${estadoActual}">`;
@@ -61,7 +137,7 @@ function pintarTablas(datos, esModuloYS) {
             }
             
             if (index === idxSerial) {
-                contenido = `<a href="javascript:void(0)" onclick="verHistorial('${valSerial}')" style="color: inherit; font-weight: bold; text-decoration: underline;">${valSerial}</a>`;
+                contenido = `<a href="javascript:void(0)" onclick="verHistorial('${valSerial}', '${valSerialProv}')" style="color: inherit; font-weight: bold; text-decoration: underline;">${valSerial}</a>`;
             }
             
             filaHtml += `<td>${contenido}</td>`;
@@ -107,9 +183,9 @@ function abrirModal() {
 function cerrarModal() { document.getElementById('miModal').style.display = 'none'; }
 function cerrarHistorial() { document.getElementById('modalHistorial').style.display = 'none'; }
 
-async function verHistorial(serialBuscado) {
+async function verHistorial(serialBuscado, serialProvBuscado) {
     try {
-        document.getElementById('historial-serial').innerText = serialBuscado;
+        document.getElementById('historial-serial').innerText = serialProvBuscado ? `${serialBuscado} (Prov: ${serialProvBuscado})` : serialBuscado;
         document.getElementById('cuerpo-historial').innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 20px;">Consultando bitácora... ⏳</td></tr>';
         document.getElementById('modalHistorial').style.display = 'block';
 
@@ -123,7 +199,9 @@ async function verHistorial(serialBuscado) {
         for(let i=1; i<filas.length; i++) {
             let sep = filas[i].includes(';') ? ';' : ',';
             let cols = filas[i].split(sep);
-            if((cols[1] ? cols[1].trim() : '') === serialBuscado) {
+            let sBit = cols[1] ? cols[1].trim().toUpperCase() : '';
+            
+            if(sBit === serialBuscado.toUpperCase() || (serialProvBuscado && sBit === serialProvBuscado.toUpperCase())) {
                 hayRegistros = true;
                 htmlHistorial += `<tr style="border-bottom: 1px solid #ddd;">
                     <td style="padding: 10px;">${cols[0] || ''}</td>
@@ -178,12 +256,13 @@ async function guardarEnGitHub(proveedorForzado, empresaForzada) {
         });
 
         if (putRes.ok) {
-            alert('¡Evento registrado! Recarga la página en unos segundos.');
+            alert('¡Evento registrado! Recarga la página en unos segundos para ver el cambio reflejado.');
             cerrarModal();
+            location.reload();
         } else throw new Error("No se pudo guardar.");
     } catch (error) {
-        alert("Error: " + error.message);
-        localStorage.removeItem('gh_token'); 
+                alert("Error: " + error.message);
+                localStorage.removeItem('gh_token'); 
     } finally {
         document.querySelector('.modal-footer .btn-guardar').innerText = "💾 Guardar Evento";
     }
