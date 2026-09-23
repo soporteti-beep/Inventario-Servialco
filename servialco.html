@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventario PROPIO - Servialco</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
+        
+        /* Navegación entre módulos */
+        .nav-modules { display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .nav-modules a { text-decoration: none; padding: 10px 20px; border-radius: 5px; color: #555; font-weight: bold; background: #e9ecef; transition: 0.3s; white-space: nowrap; }
+        .nav-modules a:hover { background: #0D6BB4; color: white; }
+        .nav-modules a.active { background: #0D6BB4; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+
+        .header { display: flex; align-items: center; justify-content: space-between; background-color: #1B9B59; color: white; padding: 15px 30px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .header-left { display: flex; align-items: center; }
+        .header img { height: 50px; margin-right: 20px; background-color: white; padding: 5px; border-radius: 4px; }
+        .header h1 { margin: 0; font-size: 24px; }
+        
+        .btn-accion { background-color: #f4f7f6; color: #1B9B59; border: 2px solid white; padding: 10px 20px; border-radius: 5px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.2);}
+        .btn-accion:hover { background-color: #e2f0f7; }
+
+        .search-container { display: flex; gap: 15px; margin-bottom: 20px; }
+        input[type="text"].buscador { flex-grow: 1; padding: 12px; font-size: 16px; border: 2px solid #A8D5E8; border-radius: 6px; outline: none; }
+        input[type="text"].buscador:focus { border-color: #1B9B59; }
+        select.filtro-estado { padding: 12px; font-size: 16px; border: 2px solid #A8D5E8; border-radius: 6px; outline: none; cursor: pointer; font-weight: bold; color: #333;}
+        
+        .titulo-seccion { background-color: #e2f0f7; color: #0D6BB4; padding: 10px 20px; margin: 20px 0 10px 0; border-radius: 6px; font-size: 18px; border-left: 5px solid #1B9B59; }
+        
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 0 8px 8px 8px; overflow: hidden; font-size: 13px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);}
+        th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #1B9B59; color: white; font-weight: bold; position: sticky; top: 0; white-space: nowrap; z-index: 2;}
+        tr:nth-child(even) { background-color: #f9fbfb; }
+        tr:hover { background-color: #e2f0f7; }
+        .badge { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; color: white; display: inline-block;}
+        .bg-asignado { background-color: #1B9B59; } .bg-bodega { background-color: #70C457; } .bg-default { background-color: #666; }
+
+        /* Modales */
+        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
+        .modal-content { background-color: #fff; margin: 5% auto; padding: 25px; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .modal-header { font-size: 20px; font-weight: bold; color: #1B9B59; margin-bottom: 15px; border-bottom: 2px solid #A8D5E8; padding-bottom: 10px;}
+        .modal-footer { margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px; }
+        .btn-cancelar { background-color: #ccc; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold;}
+        .btn-guardar { background-color: #1B9B59; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold;}
+        
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group label { font-size: 12px; font-weight: bold; color: #555; margin-bottom: 5px; }
+        .form-group input, .form-group select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; outline: none; }
+    </style>
+</head>
+<body>
+
+    <!-- MENÚ DE NAVEGACIÓN DE MÓDULOS -->
+    <div class="nav-modules">
+        <a href="index.html">📋 Todos los Equipos</a>
+        <a href="servialco.html" class="active">🏢 PROPIO - SERVIALCO</a>
+        <a href="#">🏢 AYS</a>
+        <a href="#">🏢 UNICAT</a>
+        <a href="#">🏢 ARKY</a>
+    </div>
+
+    <div class="header">
+        <div class="header-left">
+            <img src="logo-servialco.png" alt="Logo Servialco" onerror="this.style.display='none'">
+            <h1>Módulo: Equipos Propios (Servialco SAS)</h1>
+        </div>
+        <button class="btn-accion" onclick="abrirModal()">+ Actualizar Bitácora (Propios)</button>
+    </div>
+
+    <div class="search-container">
+        <input type="text" id="buscador" class="buscador" onkeyup="filtrarTabla()" placeholder="Buscar equipo, monitor, serial o responsable...">
+        <select id="filtro-estado" class="filtro-estado" onchange="filtrarTabla()">
+            <option value="">Todos los Estados</option>
+            <option value="ASIGNADO">Asignados</option>
+            <option value="BODEGA">En Bodega</option>
+            <option value="DEVUELTO">Devueltos a Proveedor</option>
+            <option value="SOPORTE">En Soporte</option>
+        </select>
+    </div>
+
+    <!-- SECCIÓN: COMPUTADORES -->
+    <div id="sec-computadores">
+        <h2 class="titulo-seccion">💻 Computadores (Portátiles y Escritorio)</h2>
+        <div style="overflow-x:auto; margin-bottom: 30px;">
+            <table id="tabla-computadores">
+                <thead><tr class="filas-cabecera"></tr></thead>
+                <tbody id="cuerpo-computadores"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- SECCIÓN: MONITORES -->
+    <div id="sec-monitores">
+        <h2 class="titulo-seccion">📺 Monitores (Propios Servialco)</h2>
+        <div style="overflow-x:auto; margin-bottom: 30px;">
+            <table id="tabla-monitores">
+                <thead><tr class="filas-cabecera"></tr></thead>
+                <tbody id="cuerpo-monitores"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- MODAL BITÁCORA (Personalizado para Servialco) -->
+    <div id="miModal" class="modal">
+        <div class="modal-content" style="width: 50%; max-width: 650px;">
+            <div class="modal-header">Registrar Evento (Solo Activos Propios)</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Fecha del Evento*</label>
+                    <input type="date" id="m-fecha" required>
+                </div>
+                <div class="form-group">
+                    <label>Serial del Activo (Llave)*</label>
+                    <input type="text" id="m-serial" placeholder="Ej: 5CG416681G..." required>
+                </div>
+                <div class="form-group">
+                    <label>Tipo de Evento*</label>
+                    <select id="m-evento" onchange="ajustarFormulario()">
+                        <option value="CAMBIO_USUARIO">Cambio de Responsable</option>
+                        <option value="CREACION_NUEVO">Ingreso Activo Nuevo</option>
+                        <option value="REPARACION">Reparación/Soporte</option>
+                    </select>
+                </div>
+                <div class="form-group" id="grupo-tipo-activo" style="display: none;">
+                     <label>Tipo de Activo (Solo Nuevos)*</label>
+                     <select id="m-tipo">
+                         <option value="PORTATIL">Computador Portátil</option>
+                         <option value="ESCRITORIO">Computador de Escritorio / Torre</option>
+                         <option value="MONITOR">Monitor Independiente</option>
+                     </select>
+                </div>
+                <div class="form-group"><label>Nuevo Responsable</label><input type="text" id="m-resp" placeholder="Nombre o 'N/A'"></div>
+                <div class="form-group"><label>Nueva Área</label><input type="text" id="m-area"></div>
+                <div class="form-group"><label>Nuevo Cargo</label><input type="text" id="m-cargo"></div>
+                <div class="form-group"><label>Nueva Ubicación</label><input type="text" id="m-ubic"></div>
+                <div class="form-group">
+                    <label>Nuevo Estado</label>
+                    <select id="m-estado">
+                        <option value="ASIGNADO">ASIGNADO</option>
+                        <option value="BODEGA">BODEGA</option>
+                        <option value="SOPORTE">EN SOPORTE</option>
+                    </select>
+                </div>
+                <!-- CAMPO EMPRESA ELIMINADO. Se fuerza por código a PROPIO-SERVIALCO -->
+            </div>
+            <div class="form-group" style="margin-top:15px; width:100%;">
+                <label>Observaciones</label>
+                <input type="text" id="m-obs" placeholder="Motivo del evento...">
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancelar" onclick="cerrarModal()">Cancelar</button>
+                <button class="btn-guardar" onclick="guardarEnGitHub()">💾 Guardar Evento</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL HISTORIAL -->
+    <div id="modalHistorial" class="modal">
+        <div class="modal-content" style="width: 80%; max-width: 900px;">
+            <div class="modal-header">Trazabilidad del Activo: <span id="historial-serial" style="color:#1B9B59;"></span></div>
+            <div style="overflow-x:auto; max-height: 400px; overflow-y: auto;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr>
+                            <th style="background-color:#A8D5E8; color:#333;">Fecha</th>
+                            <th style="background-color:#A8D5E8; color:#333;">Evento</th>
+                            <th style="background-color:#A8D5E8; color:#333;">Responsable</th>
+                            <th style="background-color:#A8D5E8; color:#333;">Ubicación</th>
+                            <th style="background-color:#A8D5E8; color:#333;">Estado</th>
+                            <th style="background-color:#A8D5E8; color:#333;">Observaciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cuerpo-historial"></tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancelar" onclick="cerrarHistorial()">Cerrar Historial</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const GITHUB_USER = 'soporteti-beep';
+        const GITHUB_REPO = 'Inventario-Servialco';
+        let encabezadosGlobales = [];
+
+        window.onload = () => { cargarInventario(); };
+
+        async function cargarInventario() {
+            try {
+                const response = await fetch('inventario.csv?' + new Date().getTime()); 
+                const data = await response.text();
+                const filas = data.split('\n').filter(row => row.trim().length > 0);
+                if(filas.length === 0) return;
+
+                const separador = filas[0].includes(';') ? ';' : ',';
+                encabezadosGlobales = filas[0].split(separador);
+                
+                // 1. Armar cabecera (Omitimos serial_proveedor porque es irrelevante para SERVIALCO)
+                let htmlCabecera = '';
+                encabezadosGlobales.forEach((h) => {
+                    if (h === 'serial_proveedor') return; 
+                    let nombreMostrar = h.toUpperCase().replace(/_/g, ' ');
+                    htmlCabecera += `<th>${nombreMostrar}</th>`;
+                });
+                
+                document.querySelectorAll('.filas-cabecera').forEach(el => el.innerHTML = htmlCabecera);
+
+                // 2. Extraer SOLO datos de PROPIO y SERVIALCO
+                let datosServialco = [];
+                for (let i = 1; i < filas.length; i++) {
+                    const columnas = filas[i].split(separador);
+                    const proveedor = columnas[5] ? columnas[5].trim().toUpperCase() : '';
+                    const empresa = columnas[6] ? columnas[6].trim().toUpperCase() : '';
+                    
+                    if (proveedor === 'PROPIO' && empresa === 'SERVIALCO') {
+                        datosServialco.push(columnas);
+                    }
+                }
+                pintarTablas(datosServialco);
+            } catch (e) { console.error("Error cargando base de datos", e); }
+        }
+
+        function pintarTablas(datos) {
+            let htmlComps = '';
+            let htmlMons = '';
+
+            let idxEstado = encabezadosGlobales.indexOf('estado');
+            let idxSerial = encabezadosGlobales.indexOf('serial');
+            let idxTipo = encabezadosGlobales.indexOf('tipo');
+
+            datos.forEach(celdas => {
+                let estadoActual = idxEstado > -1 && celdas[idxEstado] ? celdas[idxEstado].trim().toUpperCase() : '';
+                let valSerial = idxSerial > -1 && celdas[idxSerial] ? celdas[idxSerial].trim() : '';
+                let tipoVal = idxTipo > -1 && celdas[idxTipo] ? celdas[idxTipo].trim().toUpperCase() : '';
+
+                let filaHtml = `<tr class="fila-dato" data-estado="${estadoActual}">`;
+                
+                celdas.forEach((celda, index) => {
+                    if (encabezadosGlobales[index] === 'serial_proveedor') return; // Oculto
+
+                    let contenido = celda || '';
+                    if (index === idxEstado) {
+                        let claseBadge = contenido === 'ASIGNADO' ? 'bg-asignado' : (contenido === 'BODEGA' ? 'bg-bodega' : 'bg-default');
+                        contenido = `<span class="badge ${claseBadge}">${contenido}</span>`;
+                    }
+                    
+                    // El serial ahora es la columna principal y contiene el enlace al historial
+                    if (index === idxSerial) {
+                        contenido = `<a href="javascript:void(0)" onclick="verHistorial('${valSerial}')" style="color: #0D6BB4; font-weight: bold; text-decoration: underline;" title="Ver historial">${valSerial}</a>`;
+                    }
+                    
+                    filaHtml += `<td>${contenido}</td>`;
+                });
+                filaHtml += '</tr>';
+
+                // Agrupar en la tabla correspondiente
+                if (tipoVal.includes('MONITOR')) {
+                    htmlMons += filaHtml;
+                } else {
+                    htmlComps += filaHtml;
+                }
+            });
+
+            document.getElementById('cuerpo-computadores').innerHTML = htmlComps;
+            document.getElementById('cuerpo-monitores').innerHTML = htmlMons;
+            
+            // Ocultar sección si está vacía
+            document.getElementById('sec-computadores').style.display = htmlComps ? 'block' : 'none';
+            document.getElementById('sec-monitores').style.display = htmlMons ? 'block' : 'none';
+        }
+
+        function filtrarTabla() {
+            let filtroGlobal = document.getElementById("buscador").value.toUpperCase();
+            let filtroEstado = document.getElementById("filtro-estado").value.toUpperCase();
+
+            document.querySelectorAll('.fila-dato').forEach(fila => {
+                let coincideEstado = (filtroEstado === "" || fila.getAttribute('data-estado') === filtroEstado);
+                let coincideGlobal = fila.innerText.toUpperCase().includes(filtroGlobal);
+                fila.style.display = (coincideEstado && coincideGlobal) ? "" : "none";
+            });
+        }
+
+        function abrirModal() { 
+            document.getElementById('miModal').style.display = 'block'; 
+            const hoy = new Date().toISOString().split('T')[0];
+            document.getElementById('m-fecha').value = hoy;
+            ajustarFormulario();
+        }
+
+        function cerrarModal() { document.getElementById('miModal').style.display = 'none'; }
+
+        function ajustarFormulario() {
+            let evento = document.getElementById('m-evento').value;
+            let grupoTipo = document.getElementById('grupo-tipo-activo');
+            let estado = document.getElementById('m-estado');
+
+            if (evento === 'CREACION_NUEVO') {
+                grupoTipo.style.display = 'block';
+                estado.value = 'BODEGA'; // Por defecto los nuevos entran a bodega
+            } else if (evento === 'REPARACION') {
+                grupoTipo.style.display = 'none';
+                estado.value = 'SOPORTE';
+            } else {
+                grupoTipo.style.display = 'none';
+                estado.value = 'ASIGNADO';
+            }
+        }
+
+        function cerrarHistorial() { document.getElementById('modalHistorial').style.display = 'none'; }
+
+        async function verHistorial(serialBuscado) {
+            try {
+                document.getElementById('historial-serial').innerText = serialBuscado;
+                document.getElementById('cuerpo-historial').innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 20px;">Consultando bitácora... ⏳</td></tr>';
+                document.getElementById('modalHistorial').style.display = 'block';
+
+                const response = await fetch('bitacora.csv?' + new Date().getTime());
+                const data = await response.text();
+                const filas = data.split('\n').filter(row => row.trim().length > 0);
+                
+                let htmlHistorial = '';
+                let hayRegistros = false;
+                
+                for(let i=1; i<filas.length; i++) {
+                    let sep = filas[i].includes(';') ? ';' : ',';
+                    let cols = filas[i].split(sep);
+                    let colSerial = cols[1] ? cols[1].trim() : '';
+                    
+                    if(colSerial === serialBuscado) {
+                        hayRegistros = true;
+                        htmlHistorial += `<tr style="border-bottom: 1px solid #ddd;">
+                            <td style="padding: 10px;">${cols[0] || ''}</td>
+                            <td style="padding: 10px;"><strong>${cols[2] || ''}</strong></td>
+                            <td style="padding: 10px;">${cols[3] || ''}</td>
+                            <td style="padding: 10px;">${cols[6] || ''}</td>
+                            <td style="padding: 10px;"><span class="badge bg-default">${cols[7] || ''}</span></td>
+                            <td style="padding: 10px;">${cols[10] || ''}</td>
+                        </tr>`;
+                    }
+                }
+                if(!hayRegistros) htmlHistorial = '<tr><td colspan="6" style="text-align:center; padding: 20px;">No hay registros en la bitácora.</td></tr>';
+                document.getElementById('cuerpo-historial').innerHTML = htmlHistorial;
+            } catch(e) { document.getElementById('cuerpo-historial').innerHTML = '<tr><td colspan="6" style="text-align:center; color:red; padding: 20px;">Error al cargar.</td></tr>'; }
+        }
+
+        async function guardarEnGitHub() {
+            const serial = document.getElementById('m-serial').value.trim();
+            const fecha = document.getElementById('m-fecha').value;
+            const evento = document.getElementById('m-evento').value;
+
+            if(!fecha || !serial) { alert("Fecha y Serial son obligatorios."); return; }
+
+            let token = localStorage.getItem('gh_token');
+            if (!token) {
+                token = prompt('Ingresa tu GitHub Personal Access Token (PAT):');
+                if (!token) return;
+                localStorage.setItem('gh_token', token);
+            }
+
+            document.querySelector('.modal-footer .btn-guardar').innerText = "Guardando... ⏳";
+            
+            // Forzamos el proveedor y empresa ya que estamos en el módulo de Servialco
+            const nuevoProveedor = 'PROPIO';
+            const nuevaEmpresa = 'SERVIALCO';
+            const tipoActivo = evento === 'CREACION_NUEVO' ? document.getElementById('m-tipo').value : '';
+
+            const data = [
+                fecha, serial, evento, document.getElementById('m-resp').value, 
+                document.getElementById('m-area').value, document.getElementById('m-cargo').value, 
+                document.getElementById('m-ubic').value, document.getElementById('m-estado').value, 
+                nuevoProveedor, nuevaEmpresa, document.getElementById('m-obs').value, tipoActivo
+            ].map(val => val.replace(/,/g, '')); 
+
+            try {
+                const getRes = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/bitacora.csv`, { headers: { 'Authorization': `token ${token}` }});
+                if (!getRes.ok) throw new Error("Fallo de autenticación. Verifica tu Token.");
+                
+                const fileData = await getRes.json();
+                const contenidoNuevo = decodeURIComponent(escape(atob(fileData.content))) + "\n" + data.join(',');
+
+                const putRes = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/bitacora.csv`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: `🚀 Actualización desde módulo Propios: ${serial}`,
+                        content: btoa(unescape(encodeURIComponent(contenidoNuevo))),
+                        sha: fileData.sha
+                    })
+                });
+
+                if (putRes.ok) {
+                    alert('¡Evento registrado exitosamente! Recarga la página en unos segundos.');
+                    cerrarModal();
+                    document.querySelectorAll('input:not([disabled])').forEach(i => i.value = ''); 
+                } else throw new Error("No se pudo guardar.");
+            } catch (error) {
+                alert("Error: " + error.message);
+                localStorage.removeItem('gh_token'); 
+            } finally {
+                document.querySelector('.modal-footer .btn-guardar').innerText = "💾 Guardar Evento";
+            }
+        }
+    </script>
+</body>
+</html>
