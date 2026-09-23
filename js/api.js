@@ -1,79 +1,7 @@
-// ==========================================
-// CONEXIÓN CON GITHUB Y DATOS (API)
-// ==========================================
-
-async function cargarInventario() {
-    try {
-        const response = await fetch('inventario.csv?' + new Date().getTime()); 
-        const data = await response.text();
-        const filas = data.split('\n').filter(row => row.trim().length > 0);
-        if(filas.length === 0) return;
-
-        encabezadosGlobales = filas[0].split(',');
-        renderizarEncabezados();
-
-        let gruposUnicos = new Set();
-        datosGlobales = []; // Limpiamos datos antes de llenar
-
-        for (let i = 1; i < filas.length; i++) {
-            const columnas = filas[i].split(',');
-            const proveedor = columnas[5] ? columnas[5].trim() : 'PROPIO';
-            const empresa = columnas[6] ? columnas[6].trim() : 'S/E';
-            const etiquetaGrupo = `${proveedor} - ${empresa}`;
-            
-            gruposUnicos.add(etiquetaGrupo);
-            datosGlobales.push({ data: columnas, grupo: etiquetaGrupo });
-        }
-
-        renderizarPestanas(gruposUnicos);
-        pintarTabla(datosGlobales);
-    } catch (e) { console.error("Error cargando inventario", e); }
-}
-
-async function verHistorial(serialPrincipal, serialProv) {
-    try {
-        let tituloMostrar = serialProv ? `SERIAL AYS: ${serialProv} (Fábrica: ${serialPrincipal})` : serialPrincipal;
-        document.getElementById('historial-serial').innerText = tituloMostrar;
-        document.getElementById('cuerpo-historial').innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 20px;">Consultando bitácora en la nube... ⏳</td></tr>';
-        document.getElementById('modalHistorial').style.display = 'block';
-
-        const response = await fetch('bitacora.csv?' + new Date().getTime());
-        const data = await response.text();
-        const filas = data.split('\n').filter(row => row.trim().length > 0);
-        
-        let htmlHistorial = '';
-        let hayRegistros = false;
-        
-        for(let i=1; i<filas.length; i++) {
-            let cols = filas[i].split(',');
-            let colSerial = cols[1] ? cols[1].trim() : '';
-            
-            if(colSerial === serialPrincipal || (serialProv && colSerial === serialProv)) {
-                hayRegistros = true;
-                htmlHistorial += `<tr style="border-bottom: 1px solid #ddd;">
-                    <td style="padding: 10px;">${cols[0] || ''}</td>
-                    <td style="padding: 10px;"><strong>${cols[2] || ''}</strong></td>
-                    <td style="padding: 10px;">${cols[3] || ''}</td>
-                    <td style="padding: 10px;">${cols[6] || ''}</td>
-                    <td style="padding: 10px;"><span class="badge bg-default">${cols[7] || ''}</span></td>
-                    <td style="padding: 10px;">${cols[10] || ''}</td>
-                </tr>`;
-            }
-        }
-        
-        if(!hayRegistros) {
-            htmlHistorial = '<tr><td colspan="6" style="text-align:center; padding: 20px;">No hay registros de cambios en la bitácora.</td></tr>';
-        }
-        
-        document.getElementById('cuerpo-historial').innerHTML = htmlHistorial;
-    } catch(e) {
-        document.getElementById('cuerpo-historial').innerHTML = '<tr><td colspan="6" style="text-align:center; color:red; padding: 20px;">Error al cargar el historial.</td></tr>';
-    }
-}
-
 async function guardarEnGitHub() {
     const serial = document.getElementById('m-serial').value.trim();
     const fecha = document.getElementById('m-fecha').value;
+    const evento = document.getElementById('m-evento').value;
 
     if(!fecha) { alert("La fecha es obligatoria."); return; }
     if(!serial) { alert("El Serial es obligatorio."); return; }
@@ -92,10 +20,13 @@ async function guardarEnGitHub() {
     const nuevoProveedor = destinoSeleccionado[0].trim();
     const nuevaEmpresa = destinoSeleccionado[1].trim();
 
+    // Capturamos el tipo si es una creación nueva, de lo contrario lo dejamos vacío
+    const tipoActivo = evento === 'CREACION_NUEVO' ? document.getElementById('m-tipo').value : '';
+
     const data = [
         fecha, 
         serial, 
-        document.getElementById('m-evento').value,
+        evento,
         document.getElementById('m-resp').value, 
         document.getElementById('m-area').value,
         document.getElementById('m-cargo').value, 
@@ -103,7 +34,8 @@ async function guardarEnGitHub() {
         document.getElementById('m-estado').value, 
         nuevoProveedor, 
         nuevaEmpresa,
-        document.getElementById('m-obs').value
+        document.getElementById('m-obs').value,
+        tipoActivo // Enviamos el tipo de activo al final
     ].map(val => val.replace(/,/g, '')); 
 
     const nuevaLinea = "\n" + data.join(',');
