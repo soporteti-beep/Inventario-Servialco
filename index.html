@@ -82,12 +82,10 @@
                 <div class="form-group">
                     <label>Tipo de Evento*</label>
                     <select id="m-evento" onchange="ajustarFormulario()">
-                        <option value="ASIGNACION">Asignación</option>
-                        <option value="CAMBIO_USUARIO">Cambio de Usuario</option>
-                        <option value="INGRESO_BODEGA">Ingreso a Bodega</option>
-                        <option value="DEVOLUCION_PROVEEDOR">Devolución a Proveedor</option>
-                        <option value="REPARACION">Reparación / Soporte</option>
+                        <option value="CAMBIO_USUARIO">Cambio de Responsable</option>
                         <option value="CREACION_NUEVO">Ingreso Equipo Nuevo</option>
+                        <option value="DEVOLUCION_PROVEEDOR">Devolución Proveedor</option>
+                        <option value="REPARACION">Reparación/Soporte</option>
                     </select>
                 </div>
                 <div class="form-group"><label>Nuevo Responsable</label><input type="text" id="m-resp" placeholder="Nombre del usuario"></div>
@@ -105,11 +103,13 @@
                 </div>
                 <div class="form-group">
                     <label>Empresa (Pestaña destino)*</label>
+                    <!-- Formato: PROVEEDOR,EMPRESA (separamos por coma para que el script los entienda) -->
                     <select id="m-empresa">
-                        <option value="SERVIALCO">SERVIALCO SAS</option>
-                        <option value="CONSTRUSALCO">CONSTRUSALCO</option>
-                        <option value="UNICAT">UNICAT</option>
-                        <option value="ARKY">ARKY</option>
+                        <option value="AYS,CONSTRUSALCO">AYS - CONSTRUSALCO</option>
+                        <option value="PROPIO,SERVIALCO">PROPIO - SERVIALCO</option>
+                        <option value="UNICAT,UNICAT">UNICAT - UNICAT</option>
+                        <option value="AYS,SERVIALCO">AYS - SERVIALCO</option>
+                        <option value="ARKY,ARKY">ARKY - ARKY</option>
                     </select>
                 </div>
             </div>
