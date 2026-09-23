@@ -24,6 +24,8 @@
         .tab-btn:hover { background-color: #A8D5E8; }
         .tab-btn.active { background-color: #1B9B59; color: white; }
 
+        .titulo-seccion { background-color: #A8D5E8; color: #0D6BB4; padding: 10px 20px; margin: 20px 0 10px 0; border-radius: 6px; font-size: 18px; display: flex; align-items: center; gap: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);}
+        
         table { width: 100%; border-collapse: collapse; background: white; border-radius: 0 8px 8px 8px; overflow: hidden; font-size: 13px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);}
         th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #ddd; }
         th { background-color: #0D6BB4; color: white; font-weight: bold; position: sticky; top: 0; white-space: nowrap; z-index: 2;}
@@ -69,11 +71,48 @@
 
     <div class="tabs" id="tabs-container"></div>
 
-    <div style="overflow-x:auto; max-height: 70vh; overflow-y: auto;">
-        <table id="tablaInventario">
-            <thead><tr id="filas-cabecera"></tr></thead>
-            <tbody id="cuerpo-tabla"></tbody>
-        </table>
+    <!-- SECCIÓN: PORTÁTILES -->
+    <div id="sec-portatiles" style="display:none;">
+        <h2 class="titulo-seccion">💻 Equipos Portátiles</h2>
+        <div style="overflow-x:auto; margin-bottom: 30px;">
+            <table>
+                <thead><tr class="filas-cabecera"></tr></thead>
+                <tbody id="cuerpo-portatiles"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- SECCIÓN: ESCRITORIOS -->
+    <div id="sec-escritorios" style="display:none;">
+        <h2 class="titulo-seccion">🖥️ Equipos de Escritorio y Torres</h2>
+        <div style="overflow-x:auto; margin-bottom: 30px;">
+            <table>
+                <thead><tr class="filas-cabecera"></tr></thead>
+                <tbody id="cuerpo-escritorios"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- SECCIÓN: MONITORES -->
+    <div id="sec-monitores" style="display:none;">
+        <h2 class="titulo-seccion">📺 Monitores Externos</h2>
+        <div style="overflow-x:auto; margin-bottom: 30px;">
+            <table>
+                <thead><tr class="filas-cabecera"></tr></thead>
+                <tbody id="cuerpo-monitores"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- SECCIÓN: OTROS -->
+    <div id="sec-otros" style="display:none;">
+        <h2 class="titulo-seccion">📦 Otros Activos</h2>
+        <div style="overflow-x:auto; margin-bottom: 30px;">
+            <table>
+                <thead><tr class="filas-cabecera"></tr></thead>
+                <tbody id="cuerpo-otros"></tbody>
+            </table>
+        </div>
     </div>
 
     <!-- MODAL 1: FORMULARIO BITÁCORA -->
@@ -87,7 +126,7 @@
                 </div>
                 <div class="form-group">
                     <label>Serial del Activo (Llave)*</label>
-                    <input type="text" id="m-serial" placeholder="Ej: AS27300, 5CG416681G, o PENDIENTE-MON-001" required>
+                    <input type="text" id="m-serial" placeholder="Ej: AS27300, 5CG416681G..." required>
                 </div>
                 <div class="form-group">
                     <label>Tipo de Evento*</label>
@@ -167,7 +206,7 @@
     </div>
 
     <!-- ==========================================
-         SCRIPT JAVASCRIPT (LÓGICA UNIFICADA)
+         SCRIPT JAVASCRIPT (LÓGICA UNIFICADA Y SEPARACIÓN DE TABLAS)
     ========================================== -->
     <script>
         const GITHUB_USER = 'soporteti-beep';
@@ -185,7 +224,9 @@
                 const filas = data.split('\n').filter(row => row.trim().length > 0);
                 if(filas.length === 0) return;
 
-                encabezadosGlobales = filas[0].split(',');
+                // DETECCIÓN INTELIGENTE DE SEPARADOR (Evita que la tabla colapse si abriste el CSV en Excel)
+                const separador = filas[0].includes(';') ? ';' : ',';
+                encabezadosGlobales = filas[0].split(separador);
                 
                 let htmlCabecera = '';
                 encabezadosGlobales.forEach((h, index) => {
@@ -194,13 +235,15 @@
                     if (h === 'serial_proveedor') nombreMostrar = 'SERIAL AYS'; 
                     htmlCabecera += `<th>${nombreMostrar}</th>`;
                 });
-                document.getElementById('filas-cabecera').innerHTML = htmlCabecera;
+                
+                // Aplicar cabecera a todas las tablas generadas
+                document.querySelectorAll('.filas-cabecera').forEach(el => el.innerHTML = htmlCabecera);
 
                 let gruposUnicos = new Set();
                 datosGlobales = [];
 
                 for (let i = 1; i < filas.length; i++) {
-                    const columnas = filas[i].split(',');
+                    const columnas = filas[i].split(separador);
                     const proveedor = columnas[5] ? columnas[5].trim() : 'PROPIO';
                     const empresa = columnas[6] ? columnas[6].trim() : 'S/E';
                     const etiquetaGrupo = `${proveedor} - ${empresa}`;
@@ -212,46 +255,69 @@
                 const tabsContainer = document.getElementById('tabs-container');
                 tabsContainer.innerHTML = `<button class="tab-btn active" onclick="filtrarPorPestana('TODOS', this)">TODOS LOS EQUIPOS Y MONITORES</button>`;
                 
-                // Ordenar alfabéticamente las pestañas para que se vean mejor
                 Array.from(gruposUnicos).sort().forEach(grupo => {
                     if(grupo !== " - ") tabsContainer.innerHTML += `<button class="tab-btn" onclick="filtrarPorPestana('${grupo}', this)">${grupo}</button>`;
                 });
+                
                 pintarTabla(datosGlobales);
+                filtrarTabla(); // Ejecuta filtro inicial para ocultar/mostrar tablas
             } catch (e) { console.error("Error", e); }
         }
 
         function pintarTabla(datos) {
-            let htmlCuerpo = '';
+            let htmlPortatiles = '';
+            let htmlEscritorios = '';
+            let htmlMonitores = '';
+            let htmlOtros = '';
+
             let idxEstado = encabezadosGlobales.indexOf('estado');
             let idxSerialOrig = encabezadosGlobales.indexOf('serial');
             let idxSerialProv = encabezadosGlobales.indexOf('serial_proveedor');
+            let idxTipo = encabezadosGlobales.indexOf('tipo');
 
             datos.forEach(fila => {
-                let estadoActual = idxEstado > -1 ? fila.data[idxEstado].trim().toUpperCase() : '';
-                let valSerialOrig = idxSerialOrig > -1 ? fila.data[idxSerialOrig].trim() : '';
-                let valSerialProv = idxSerialProv > -1 ? fila.data[idxSerialProv].trim() : '';
+                let estadoActual = idxEstado > -1 && fila.data[idxEstado] ? fila.data[idxEstado].trim().toUpperCase() : '';
+                let valSerialOrig = idxSerialOrig > -1 && fila.data[idxSerialOrig] ? fila.data[idxSerialOrig].trim() : '';
+                let valSerialProv = idxSerialProv > -1 && fila.data[idxSerialProv] ? fila.data[idxSerialProv].trim() : '';
+                let tipoVal = idxTipo > -1 && fila.data[idxTipo] ? fila.data[idxTipo].trim().toUpperCase() : '';
 
-                htmlCuerpo += `<tr class="fila-dato" data-grupo="${fila.grupo}" data-estado="${estadoActual}">`;
+                // Clasificador inteligente de tablas
+                let claseFila = 'fila-otros';
+                if (tipoVal.includes('PORTATIL')) claseFila = 'fila-portatil';
+                else if (tipoVal.includes('ESCRITORIO') || tipoVal.includes('TORRE') || tipoVal.includes('CPU') || tipoVal.includes('COMPUTADOR')) claseFila = 'fila-escritorio';
+                else if (tipoVal.includes('MONITOR') || tipoVal.includes('PANTALLA')) claseFila = 'fila-monitor';
+
+                let filaHtml = `<tr class="fila-dato ${claseFila}" data-grupo="${fila.grupo}" data-estado="${estadoActual}">`;
                 
                 fila.data.forEach((celda, index) => {
                     if (index === idxSerialOrig) return;
 
-                    let contenido = celda;
+                    let contenido = celda || '';
                     if (index === idxEstado) {
-                        let claseBadge = celda === 'ASIGNADO' ? 'bg-asignado' : (celda === 'BODEGA' ? 'bg-bodega' : 'bg-default');
-                        contenido = `<span class="badge ${claseBadge}">${celda}</span>`;
+                        let claseBadge = contenido === 'ASIGNADO' ? 'bg-asignado' : (contenido === 'BODEGA' ? 'bg-bodega' : 'bg-default');
+                        contenido = `<span class="badge ${claseBadge}">${contenido}</span>`;
                     }
                     
                     if (index === idxSerialProv) {
-                        let serialAMostrar = celda.trim() !== '' ? celda : valSerialOrig;
+                        let serialAMostrar = contenido.trim() !== '' ? contenido : valSerialOrig;
                         contenido = `<a href="javascript:void(0)" onclick="verHistorial('${valSerialOrig}', '${valSerialProv}')" style="color: #0D6BB4; font-weight: bold; text-decoration: underline;">${serialAMostrar}</a>`;
                     }
                     
-                    htmlCuerpo += `<td>${contenido}</td>`;
+                    filaHtml += `<td>${contenido}</td>`;
                 });
-                htmlCuerpo += '</tr>';
+                filaHtml += '</tr>';
+
+                // Distribuimos la fila a la tabla correspondiente
+                if (claseFila === 'fila-portatil') htmlPortatiles += filaHtml;
+                else if (claseFila === 'fila-escritorio') htmlEscritorios += filaHtml;
+                else if (claseFila === 'fila-monitor') htmlMonitores += filaHtml;
+                else htmlOtros += filaHtml;
             });
-            document.getElementById('cuerpo-tabla').innerHTML = htmlCuerpo;
+
+            document.getElementById('cuerpo-portatiles').innerHTML = htmlPortatiles;
+            document.getElementById('cuerpo-escritorios').innerHTML = htmlEscritorios;
+            document.getElementById('cuerpo-monitores').innerHTML = htmlMonitores;
+            document.getElementById('cuerpo-otros').innerHTML = htmlOtros;
         }
 
         function filtrarPorPestana(grupo, btn) {
@@ -267,13 +333,29 @@
             let filtroEstado = document.getElementById("filtro-estado").value.toUpperCase();
             let grupoActivo = document.querySelector('.tab-btn.active').innerText;
             
+            let countP = 0, countE = 0, countM = 0, countO = 0;
+
             document.querySelectorAll('.fila-dato').forEach(fila => {
                 let coincidePestana = (grupoActivo.includes('TODOS') || fila.getAttribute('data-grupo') === grupoActivo);
                 let coincideEstado = (filtroEstado === "" || fila.getAttribute('data-estado') === filtroEstado);
                 let coincideGlobal = fila.innerText.toUpperCase().includes(filtroGlobal);
                 
-                fila.style.display = (coincidePestana && coincideEstado && coincideGlobal) ? "" : "none";
+                if (coincidePestana && coincideEstado && coincideGlobal) {
+                    fila.style.display = "";
+                    if (fila.classList.contains('fila-portatil')) countP++;
+                    else if (fila.classList.contains('fila-escritorio')) countE++;
+                    else if (fila.classList.contains('fila-monitor')) countM++;
+                    else countO++;
+                } else {
+                    fila.style.display = "none";
+                }
             });
+
+            // Ocultar sección completa si no hay equipos en ella después de filtrar
+            document.getElementById('sec-portatiles').style.display = countP > 0 ? 'block' : 'none';
+            document.getElementById('sec-escritorios').style.display = countE > 0 ? 'block' : 'none';
+            document.getElementById('sec-monitores').style.display = countM > 0 ? 'block' : 'none';
+            document.getElementById('sec-otros').style.display = countO > 0 ? 'block' : 'none';
         }
 
         function abrirModal() { 
@@ -330,7 +412,9 @@
                 let hayRegistros = false;
                 
                 for(let i=1; i<filas.length; i++) {
-                    let cols = filas[i].split(',');
+                    // Soportar tanto comas como punto y comas en bitacora también
+                    let sepBitacora = filas[i].includes(';') ? ';' : ',';
+                    let cols = filas[i].split(sepBitacora);
                     let colSerial = cols[1] ? cols[1].trim() : '';
                     if(colSerial === serialPrincipal || (serialProv && colSerial === serialProv)) {
                         hayRegistros = true;
@@ -367,6 +451,7 @@
             const destinoSeleccionado = document.getElementById('m-empresa').value.split(',');
             const tipoActivo = evento === 'CREACION_NUEVO' ? document.getElementById('m-tipo').value : '';
 
+            // Importante: La bitácora siempre se guarda con comas puras
             const data = [
                 fecha, serial, evento, document.getElementById('m-resp').value, 
                 document.getElementById('m-area').value, document.getElementById('m-cargo').value, 
