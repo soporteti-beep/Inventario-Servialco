@@ -56,6 +56,7 @@
 </head>
 <body>
 
+    <!-- MENÚ DE NAVEGACIÓN -->
     <div class="nav-modules">
         <a href="index.html" class="active">📋 Todos los Equipos</a>
         <a href="Servialco/servialco.html">🏢 PROPIO - SERVIALCO</a>
@@ -67,7 +68,7 @@
     <div class="header">
         <div class="header-left">
             <img src="logo-servialco.png" alt="Logo Servialco" onerror="this.style.display='none'">
-            <h1>Visor Global de Inventario (Todos los Activos)</h1>
+            <h1>Visor Global de Inventario (Integrado)</h1>
         </div>
         <button class="btn-accion" onclick="abrirModal()">+ Actualizar Bitácora Global</button>
     </div>
@@ -211,50 +212,67 @@
         let encabezadosGlobales = [];
         let datosGlobales = [];
 
-        window.onload = () => { cargarInventario(); };
+        // Archivos CSV individuales a consumir
+        const ARCHIVOS_CSV = [
+            'Servialco/servialco.csv',
+            'AYS-Servialco/ays-servialco.csv',
+            'UNICAT/unicat.csv',
+            'ARKY/arky.csv'
+        ];
 
-        async function cargarInventario() {
+        window.onload = () => { cargarInventarioUnificado(); };
+
+        async function cargarInventarioUnificado() {
             try {
-                // CORRECCIÓN: Leer el inventario maestro correcto.
-                const response = await fetch('inventario.csv?' + new Date().getTime()); 
-                const data = await response.text();
-                const filas = data.split('\n').filter(row => row.trim().length > 0);
-                if(filas.length === 0) return;
-
-                const separador = filas[0].includes(';') ? ';' : ',';
-                encabezadosGlobales = filas[0].split(separador);
-                
-                let htmlCabecera = '';
-                encabezadosGlobales.forEach((h) => {
-                    let nombreMostrar = h.toUpperCase().replace(/_/g, ' ');
-                    htmlCabecera += `<th>${nombreMostrar}</th>`;
-                });
-                
-                document.querySelectorAll('.filas-cabecera').forEach(el => el.innerHTML = htmlCabecera);
-
-                let gruposUnicos = new Set();
                 datosGlobales = [];
+                let gruposUnicos = new Set();
+                let cabeceraEstablecida = false;
 
-                for (let i = 1; i < filas.length; i++) {
-                    const columnas = filas[i].split(separador);
-                    const proveedor = columnas[5] ? columnas[5].trim() : 'PROPIO';
-                    const empresa = columnas[6] ? columnas[6].trim() : 'S/E';
-                    const etiquetaGrupo = `${proveedor} - ${empresa}`;
+                // Carga dinámica de todos los archivos CSV en paralelo
+                const timestamp = new Date().getTime();
+                const respuestas = await Promise.all(
+                    ARCHIVOS_CSV.map(url => fetch(`${url}?${timestamp}`).then(r => r.ok ? r.text() : ''))
+                );
+
+                respuestas.forEach(data => {
+                    if (!data) return;
+                    const filas = data.split('\n').filter(row => row.trim().length > 0);
+                    if (filas.length === 0) return;
+
+                    const separador = filas[0].includes(';') ? ';' : ',';
                     
-                    gruposUnicos.add(etiquetaGrupo);
-                    datosGlobales.push({ data: columnas, grupo: etiquetaGrupo });
-                }
-                
+                    if (!cabeceraEstablecida) {
+                        encabezadosGlobales = filas[0].split(separador);
+                        let htmlCabecera = '';
+                        encabezadosGlobales.forEach(h => {
+                            let nombreMostrar = h.toUpperCase().replace(/_/g, ' ');
+                            htmlCabecera += `<th>${nombreMostrar}</th>`;
+                        });
+                        document.querySelectorAll('.filas-cabecera').forEach(el => el.innerHTML = htmlCabecera);
+                        cabeceraEstablecida = true;
+                    }
+
+                    for (let i = 1; i < filas.length; i++) {
+                        const columnas = filas[i].split(separador);
+                        const proveedor = columnas[5] ? columnas[5].trim() : 'PROPIO';
+                        const empresa = columnas[6] ? columnas[6].trim() : 'S/E';
+                        const etiquetaGrupo = `${proveedor} - ${empresa}`;
+                        
+                        gruposUnicos.add(etiquetaGrupo);
+                        datosGlobales.push({ data: columnas, grupo: etiquetaGrupo });
+                    }
+                });
+
                 const tabsContainer = document.getElementById('tabs-container');
                 tabsContainer.innerHTML = `<button class="tab-btn active" onclick="filtrarPorPestana('TODOS', this)">VISIÓN GLOBAL</button>`;
                 
                 Array.from(gruposUnicos).sort().forEach(grupo => {
-                    if(grupo !== " - ") tabsContainer.innerHTML += `<button class="tab-btn" onclick="filtrarPorPestana('${grupo}', this)">${grupo}</button>`;
+                    if (grupo !== " - ") tabsContainer.innerHTML += `<button class="tab-btn" onclick="filtrarPorPestana('${grupo}', this)">${grupo}</button>`;
                 });
 
                 pintarTablas(datosGlobales);
                 filtrarTabla();
-            } catch (e) { console.error("Error cargando base de datos maestra", e); }
+            } catch (e) { console.error("Error unificando los inventarios", e); }
         }
 
         function pintarTablas(datos) {
@@ -362,14 +380,13 @@
 
             resp.disabled = false; area.disabled = false; cargo.disabled = false;
             
-            // REGLA DE NEGOCIO: Bloquear "PROPIO" si es "Devolución Proveedor"
+            // BLOQUEO LÓGICO: "PROPIO" deshabilitado si el evento es "Devolución Proveedor"
             Array.from(empresaSelect.options).forEach(opt => {
                 if (opt.value === 'PROPIO,SERVIALCO') {
                     opt.disabled = (evento === 'DEVOLUCION_PROVEEDOR');
                 }
             });
 
-            // Si estaba seleccionado PROPIO y ahora está deshabilitado, cambiamos a la siguiente opción
             if (empresaSelect.value === 'PROPIO,SERVIALCO' && evento === 'DEVOLUCION_PROVEEDOR') {
                 empresaSelect.value = 'AYS,CONSTRUSALCO';
             }
