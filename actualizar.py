@@ -1,6 +1,12 @@
 import csv
 import os
 
+def detectar_separador(ruta_archivo):
+    """Detecta dinámicamente si el CSV usa coma (,) o punto y coma (;)"""
+    with open(ruta_archivo, 'r', encoding='utf-8-sig') as f:
+        primera_linea = f.readline()
+        return ';' if ';' in primera_linea else ','
+
 def procesar_inventario():
     bitacora_path = 'bitacora.csv'
     if not os.path.exists(bitacora_path):
@@ -16,27 +22,37 @@ def procesar_inventario():
 
     modulos_data = {}
     modulos_headers = {}
+    modulos_separadores = {}
 
+    # 1. Leer los inventarios base
     for clave, ruta in rutas_csv.items():
         if os.path.exists(ruta):
+            sep = detectar_separador(ruta)
+            modulos_separadores[clave] = sep
             with open(ruta, mode='r', encoding='utf-8-sig') as f:
-                reader = csv.reader(f)
+                reader = csv.reader(f, delimiter=sep)
                 filas = list(reader)
                 if filas:
                     modulos_headers[clave] = filas[0]
                     # Indexar por serial (columna 0) limpiando espacios y mayúsculas
-                    modulos_data[clave] = {fila[0].strip().upper(): fila for fila in filas[1:] if fila and len(fila) > 0}
+                    modulos_data[clave] = {
+                        fila[0].strip().upper(): fila 
+                        for fila in filas[1:] if fila and len(fila) > 0 and fila[0].strip()
+                    }
         else:
             print(f"Advertencia: No se encontró la ruta {ruta}")
 
+    # 2. Leer la bitácora
+    sep_bit = detectar_separador(bitacora_path)
     with open(bitacora_path, mode='r', encoding='utf-8-sig') as f:
-        reader = csv.reader(f)
+        reader = csv.reader(f, delimiter=sep_bit)
         bitacora_filas = list(reader)
 
     if len(bitacora_filas) <= 1:
         print("Bitácora vacía o solo contiene cabecera.")
         return
 
+    # 3. Procesar eventos de la bitácora
     for fila in bitacora_filas[1:]:
         if not fila or len(fila) < 8:
             continue
@@ -70,13 +86,15 @@ def procesar_inventario():
             inventario_target = modulos_data[clave_modulo]
             headers_target = [h.strip().lower() for h in modulos_headers[clave_modulo]]
 
-            # Búsqueda dinámica de índices de columnas
+            # Búsqueda dinámica de índices
             idx_resp = headers_target.index('responsable') if 'responsable' in headers_target else -1
             idx_area = headers_target.index('area') if 'area' in headers_target else -1
             idx_cargo = headers_target.index('cargo') if 'cargo' in headers_target else -1
             idx_ubic = headers_target.index('ubicacion') if 'ubicacion' in headers_target else -1
             idx_estado = headers_target.index('estado') if 'estado' in headers_target else -1
             idx_prov = headers_target.index('serial_proveedor') if 'serial_proveedor' in headers_target else -1
+            idx_obs = headers_target.index('observaciones') if 'observaciones' in headers_target else -1
+            idx_fecha = headers_target.index('ultima_actualizacion') if 'ultima_actualizacion' in headers_target else -1
 
             equipo_encontrado = None
             if serial in inventario_target:
@@ -88,16 +106,26 @@ def procesar_inventario():
                         break
 
             if equipo_encontrado:
-                if resp and idx_resp > -1 and len(equipo_encontrado) > idx_resp: equipo_encontrado[idx_resp] = resp
-                if area and idx_area > -1 and len(equipo_encontrado) > idx_area: equipo_encontrado[idx_area] = area
-                if cargo and idx_cargo > -1 and len(equipo_encontrado) > idx_cargo: equipo_encontrado[idx_cargo] = cargo
-                if ubicacion and idx_ubic > -1 and len(equipo_encontrado) > idx_ubic: equipo_encontrado[idx_ubic] = ubicacion
-                if estado and idx_estado > -1 and len(equipo_encontrado) > idx_estado: equipo_encontrado[idx_estado] = estado
+                # Asegurar que la fila tenga suficiente longitud para los índices de las columnas
+                max_idx = max(idx_resp, idx_area, idx_cargo, idx_ubic, idx_estado, idx_obs, idx_fecha)
+                while len(equipo_encontrado) <= max_idx:
+                    equipo_encontrado.append('')
 
+                # Asignación de datos
+                if resp and idx_resp > -1: equipo_encontrado[idx_resp] = resp
+                if area and idx_area > -1: equipo_encontrado[idx_area] = area
+                if cargo and idx_cargo > -1: equipo_encontrado[idx_cargo] = cargo
+                if ubicacion and idx_ubic > -1: equipo_encontrado[idx_ubic] = ubicacion
+                if estado and idx_estado > -1: equipo_encontrado[idx_estado] = estado
+                if obs and idx_obs > -1: equipo_encontrado[idx_obs] = obs
+                if fecha and idx_fecha > -1: equipo_encontrado[idx_fecha] = fecha
+
+    # 4. Guardar los archivos CSV actualizados
     for clave, ruta in rutas_csv.items():
         if clave in modulos_data and clave in modulos_headers:
+            sep = modulos_separadores.get(clave, ',')
             with open(ruta, mode='w', encoding='utf-8', newline='') as f:
-                writer = csv.writer(f)
+                writer = csv.writer(f, delimiter=sep)
                 writer.writerow(modulos_headers[clave])
                 writer.writerows(modulos_data[clave].values())
             print(f"Archivo {ruta} actualizado exitosamente.")
