@@ -8,6 +8,7 @@
 </head>
 <body>
 
+    <!-- NAVEGACIÓN PRINCIPAL -->
     <div class="nav-modules">
         <a href="../index.html">📋 Todos los Equipos</a>
         <a href="../Servialco/servialco.html">🏢 SERVIALCO</a>
@@ -16,14 +17,25 @@
         <a href="arky.html" class="active">🏢 ARKY</a>
     </div>
 
-    <div class="header">
-        <div class="header-left">
+    <!-- NUEVA CABECERA OFICIAL: ETIQUETA ACTIVO FIJOS -->
+    <div class="doc-header">
+        <div class="doc-logo">
             <img src="../logo-servialco.png" alt="Logo" onerror="this.style.display='none'">
-            <h1>Módulo: Equipos Alquilados (ARKY)</h1>
         </div>
-        <button class="btn-accion" onclick="abrirModal()">+ Actualizar Bitácora (ARKY)</button>
+        <div class="doc-title">
+            INVENTARIO ACTIVO FIJOS
+            <span>MÓDULO: EQUIPOS ALQUILADOS (ARKY)</span>
+        </div>
+        <div class="doc-meta">
+            <div><strong>CODIGO:</strong> GT.FO.01</div>
+            <div><strong>VERSION:</strong> 01</div>
+            <div><strong>VIGENCIA DESDE:</strong> 13/06/2025</div>
+        </div>
     </div>
 
+    <button class="btn-accion" onclick="abrirModal()">+ Registrar Evento en Bitácora (ARKY)</button>
+
+    <!-- BUSCADOR Y FILTROS -->
     <div class="search-container">
         <input type="text" id="buscador" class="buscador" onkeyup="filtrarTabla()" placeholder="Buscar equipo, serial o responsable...">
         <select id="filtro-estado" class="filtro-estado" onchange="filtrarTabla()">
@@ -35,17 +47,28 @@
         </select>
     </div>
 
+    <!-- TABLAS DE DATOS CON CLASE table-container (Activa el Sticky Header) -->
     <div id="sec-computadores" style="display:none;">
-        <h2 class="titulo-seccion">💻 Computadores</h2>
-        <div style="overflow-x:auto;"><table><thead><tr class="filas-cabecera"></tr></thead><tbody id="cuerpo-computadores"></tbody></table></div>
+        <h2 class="titulo-seccion">💻 Computadores (Portátiles y Escritorio)</h2>
+        <div class="table-container">
+            <table>
+                <thead><tr class="filas-cabecera"></tr></thead>
+                <tbody id="cuerpo-computadores"></tbody>
+            </table>
+        </div>
     </div>
 
     <div id="sec-monitores" style="display:none;">
-        <h2 class="titulo-seccion">📺 Monitores</h2>
-        <div style="overflow-x:auto;"><table><thead><tr class="filas-cabecera"></tr></thead><tbody id="cuerpo-monitores"></tbody></table></div>
+        <h2 class="titulo-seccion">📺 Monitores (ARKY)</h2>
+        <div class="table-container">
+            <table>
+                <thead><tr class="filas-cabecera"></tr></thead>
+                <tbody id="cuerpo-monitores"></tbody>
+            </table>
+        </div>
     </div>
 
-    <!-- MODAL -->
+    <!-- MODAL DE BITÁCORA -->
     <div id="miModal" class="modal">
         <div class="modal-content" style="width: 50%; max-width: 600px;">
             <div class="modal-header">Registrar Evento (ARKY)</div>
@@ -67,10 +90,16 @@
         </div>
     </div>
 
+    <!-- MODAL DE HISTORIAL -->
     <div id="modalHistorial" class="modal">
         <div class="modal-content" style="width: 80%;">
             <div class="modal-header">Historial: <span id="historial-serial"></span></div>
-            <div style="overflow-x:auto; max-height: 300px;"><table style="width:100%;"><thead><tr><th>Fecha</th><th>Evento</th><th>Responsable</th><th>Ubicación</th><th>Estado</th><th>Obs</th></tr></thead><tbody id="cuerpo-historial"></tbody></table></div>
+            <div class="table-container" style="max-height: 300px;">
+                <table style="width:100%;">
+                    <thead><tr><th>Fecha</th><th>Evento</th><th>Responsable</th><th>Ubicación</th><th>Estado</th><th>Obs</th></tr></thead>
+                    <tbody id="cuerpo-historial"></tbody>
+                </table>
+            </div>
             <div class="modal-footer"><button class="btn-cancelar" onclick="cerrarHistorial()">Cerrar</button></div>
         </div>
     </div>
