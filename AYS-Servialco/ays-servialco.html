@@ -118,7 +118,9 @@
         </div>
     </div>
 
-    <script src="../js/main.js"></script>
+    <!-- SCRIPTS MODULARES -->
+    <script src="../js/api.js"></script>
+    <script src="../js/ui.js"></script>
     <script>
         let empresaFiltroActiva = 'SERVIALCO'; 
         window.onload = () => { cargarModulo('ays-servialco.csv', false); };
@@ -130,7 +132,8 @@
             filtrarTabla();
         }
 
-        function filtrarTabla() {
+        // Add this line to handle the filtering correctly
+        window.filtrarTabla = function() {
             let filtroGlobal = document.getElementById("buscador").value.toUpperCase();
             let filtroEstado = document.getElementById("filtro-estado").value.toUpperCase();
 
