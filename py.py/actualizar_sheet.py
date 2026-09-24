@@ -15,25 +15,34 @@ def sincronizar_drive():
     creds_dict = json.loads(creds_json)
     gc = gspread.service_account_from_dict(creds_dict)
     
-    # 2. ID extraído de tu imagen (la URL del archivo Excel "bitacora")
+    # 2. ID extraído de tu Google Sheets ("bitacora")
     ID_HOJA = "1f8RXApZiAB444HVlrRGzOVc8X5L-bKSc1lB45UZKuBI"
+    
+    # 3. Asegurar la ruta correcta a la bitácora
+    # Como el script está en py.py/, calculamos la ruta hacia la carpeta principal
+    ruta_script = os.path.dirname(os.path.abspath(__file__))
+    ruta_bitacora = os.path.join(ruta_script, '..', 'bitacora.csv')
+    
+    # Fallback de seguridad por si GitHub Actions lo ejecuta directo en la raíz
+    if not os.path.exists(ruta_bitacora):
+        ruta_bitacora = 'bitacora.csv'
     
     try:
         documento = gc.open_by_key(ID_HOJA)
         hoja = documento.sheet1
         
-        # 3. Leer el archivo bitacora.csv detectando el separador correcto
-        with open('bitacora.csv', 'r', encoding='utf-8-sig') as f:
+        # 4. Leer el archivo bitacora.csv detectando el separador correcto
+        with open(ruta_bitacora, 'r', encoding='utf-8-sig') as f:
             primera_linea = f.readline()
             sep = ';' if ';' in primera_linea else ','
             f.seek(0)
             reader = csv.reader(f, delimiter=sep)
             datos_csv = list(reader)
             
-        # 4. Limpiar la hoja y subir los nuevos datos al instante
+        # 5. Limpiar la hoja y subir los nuevos datos al instante
         hoja.clear()
         hoja.update(datos_csv)
-        print(f"¡Éxito! Se actualizaron {len(datos_csv)} filas en tu Excel de Google Drive.")
+        print(f"¡Éxito! Se sincronizaron {len(datos_csv)} filas en tu Google Sheets.")
         
     except Exception as e:
         print(f"Error al actualizar Google Sheets: {e}")
