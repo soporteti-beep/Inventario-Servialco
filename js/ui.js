@@ -29,12 +29,10 @@ function pintarTablas(datos, esModuloYS) {
         let valSerial = celdas[idxSerial] ? celdas[idxSerial].trim() : '';
         let tipoVal = idxTipo > -1 && celdas[idxTipo] ? celdas[idxTipo].trim().toUpperCase() : '';
         
-        // Nueva variable que extrae el grupo asignado desde el index.html
         let grupoActual = fila.grupo || '';
 
         let esMonitor = tipoVal.includes('MONITOR') || tipoVal.includes('PANTALLA');
 
-        // Se inyecta el atributo data-grupo para que el filtro de pestañas pueda leerlo
         let filaHtml = `<tr class="fila-dato ${esMonitor ? 'fila-monitor' : 'fila-comp'}" data-estado="${estadoActual}" data-empresa="${empresaActual}" data-grupo="${grupoActual}">`;
         
         celdas.forEach((celda, index) => {
@@ -90,17 +88,46 @@ function abrirModal() {
         document.getElementById('miModal').style.display = 'block'; 
         // Reiniciar valores del formulario al abrir
         document.getElementById('m-serial').value = '';
-        document.getElementById('m-evento').value = 'ASIGNACION';
+        document.getElementById('m-evento').selectedIndex = 0; // Selecciona la primera opción por defecto
         document.getElementById('m-resp').value = '';
         document.getElementById('m-area').value = '';
         document.getElementById('m-cargo').value = '';
         document.getElementById('m-ubic').value = '';
         document.getElementById('m-estado').value = 'ASIGNADO';
         document.getElementById('m-obs').value = '';
+
+        // Vinculamos el evento onchange a la lista desplegable y actualizamos la vista
+        const selectEvento = document.getElementById('m-evento');
+        selectEvento.onchange = toggleCamposPorEvento;
+        toggleCamposPorEvento();
     }
     if(document.getElementById('m-fecha')) {
         document.getElementById('m-fecha').value = new Date().toISOString().split('T')[0];
     }
+}
+
+// NUEVA FUNCIÓN: Oculta o muestra campos dependiendo del evento
+function toggleCamposPorEvento() {
+    const selectEvento = document.getElementById('m-evento');
+    if (!selectEvento) return;
+
+    const evento = selectEvento.value.toUpperCase();
+    
+    // IDs de los campos que queremos ocultar (dejaremos Observaciones por si quieres poner un motivo)
+    const camposExtras = ['m-area', 'm-cargo', 'm-ubic', 'm-estado'];
+
+    camposExtras.forEach(id => {
+        const elemento = document.getElementById(id);
+        if (elemento && elemento.parentElement) {
+            // Si el evento es Eliminar o Devolver, ocultamos los campos extra
+            if (evento === 'ELIMINAR' || evento === 'DEVOLVER') {
+                elemento.parentElement.style.display = 'none';
+            } else {
+                // Para eventos como Nuevo o Cambio Responsable, volvemos a mostrarlos
+                elemento.parentElement.style.display = '';
+            }
+        }
+    });
 }
 
 function cerrarModal() { 
@@ -115,7 +142,6 @@ function cerrarHistorial() {
 function prepararGuardado(proveedor, empresa) {
     const btnGuardar = document.querySelector('.modal-footer .btn-guardar');
     if(btnGuardar) {
-        // Removemos eventos previos para evitar ejecuciones dobles
         const nuevoBtn = btnGuardar.cloneNode(true);
         btnGuardar.parentNode.replaceChild(nuevoBtn, btnGuardar);
         
