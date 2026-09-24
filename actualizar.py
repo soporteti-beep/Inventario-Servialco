@@ -1,5 +1,6 @@
 import csv
 import os
+from datetime import datetime
 
 def detectar_separador(ruta_archivo):
     """Detecta dinámicamente si el CSV usa coma (,) o punto y coma (;)"""
@@ -24,6 +25,9 @@ def procesar_inventario():
     modulos_headers = {}
     modulos_separadores = {}
 
+    # Fecha de hoy automática
+    fecha_hoy = datetime.now().strftime('%Y-%m-%d')
+
     # 1. Leer los inventarios base
     for clave, ruta in rutas_csv.items():
         if os.path.exists(ruta):
@@ -34,7 +38,6 @@ def procesar_inventario():
                 filas = list(reader)
                 if filas:
                     modulos_headers[clave] = filas[0]
-                    # Indexar por serial (columna 0) limpiando espacios y mayúsculas
                     modulos_data[clave] = {
                         fila[0].strip().upper(): fila 
                         for fila in filas[1:] if fila and len(fila) > 0 and fila[0].strip()
@@ -57,7 +60,7 @@ def procesar_inventario():
         if not fila or len(fila) < 8:
             continue
 
-        fecha = fila[0].strip() if len(fila) > 0 else ''
+        fecha_entrega = fila[0].strip() if len(fila) > 0 else '' # Fecha seleccionada en el formulario
         serial = fila[1].strip().upper() if len(fila) > 1 else ''
         evento = fila[2].strip().upper() if len(fila) > 2 else ''
         resp = fila[3].strip() if len(fila) > 3 else ''
@@ -107,20 +110,22 @@ def procesar_inventario():
                         break
 
             if equipo_encontrado:
-                # Asegurar que la fila tenga suficiente longitud para los índices de las columnas
                 max_idx = max(idx_resp, idx_area, idx_cargo, idx_ubic, idx_estado, idx_obs, idx_fecha, idx_entrega)
                 while len(equipo_encontrado) <= max_idx:
                     equipo_encontrado.append('')
 
-                # Asignación de datos
                 if resp and idx_resp > -1: equipo_encontrado[idx_resp] = resp
                 if area and idx_area > -1: equipo_encontrado[idx_area] = area
                 if cargo and idx_cargo > -1: equipo_encontrado[idx_cargo] = cargo
                 if ubicacion and idx_ubic > -1: equipo_encontrado[idx_ubic] = ubicacion
                 if estado and idx_estado > -1: equipo_encontrado[idx_estado] = estado
                 if obs and idx_obs > -1: equipo_encontrado[idx_obs] = obs
-                if fecha and idx_fecha > -1: equipo_encontrado[idx_fecha] = fecha
-                if fecha and idx_entrega > -1: equipo_encontrado[idx_entrega] = fecha
+                
+                # FECHA ENTREGA -> Asigna la fecha seleccionada en el formulario
+                if fecha_entrega and idx_entrega > -1: equipo_encontrado[idx_entrega] = fecha_entrega
+                
+                # ULTIMA ACTUALIZACION -> Asigna automáticamente la fecha de hoy
+                if idx_fecha > -1: equipo_encontrado[idx_fecha] = fecha_hoy
 
     # 4. Guardar los archivos CSV actualizados
     for clave, ruta in rutas_csv.items():
