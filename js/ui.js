@@ -28,10 +28,14 @@ function pintarTablas(datos, esModuloYS) {
         let empresaActual = idxEmpresa > -1 && celdas[idxEmpresa] ? celdas[idxEmpresa].trim().toUpperCase() : '';
         let valSerial = celdas[idxSerial] ? celdas[idxSerial].trim() : '';
         let tipoVal = idxTipo > -1 && celdas[idxTipo] ? celdas[idxTipo].trim().toUpperCase() : '';
+        
+        // Nueva variable que extrae el grupo asignado desde el index.html
+        let grupoActual = fila.grupo || '';
 
         let esMonitor = tipoVal.includes('MONITOR') || tipoVal.includes('PANTALLA');
 
-        let filaHtml = `<tr class="fila-dato ${esMonitor ? 'fila-monitor' : 'fila-comp'}" data-estado="${estadoActual}" data-empresa="${empresaActual}">`;
+        // Se inyecta el atributo data-grupo para que el filtro de pestañas pueda leerlo
+        let filaHtml = `<tr class="fila-dato ${esMonitor ? 'fila-monitor' : 'fila-comp'}" data-estado="${estadoActual}" data-empresa="${empresaActual}" data-grupo="${grupoActual}">`;
         
         celdas.forEach((celda, index) => {
             if (!esModuloYS && encabezadosGlobales[index].trim() === 'serial_proveedor') return;
