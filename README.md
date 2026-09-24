@@ -55,4 +55,5 @@ Inventario-Servialco/
 ├── index.html                     # Visor global de consulta unificada
 ├── bitacora.csv                   # Registro maestro de trazabilidad e historial
 ├── actualizar.py                  # Script Python que procesa la bitácora
+├── actualizar_sheet.py            # Script Python que procesa la bitácora y envía los datos a una Hoja de Calculo de Google Drive
 └── README.md                      # Documentación del proyecto
