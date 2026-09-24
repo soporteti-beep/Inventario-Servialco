@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Inventario AYS</title>
+    <title>Inventario AYS - Servialco / Construsalco</title>
     <link rel="stylesheet" href="../css/style.css">
     <style>
         :root { --tema-color: #E67E22; }
@@ -14,6 +14,7 @@
 </head>
 <body>
 
+    <!-- NAVEGACIÓN PRINCIPAL -->
     <div class="nav-modules">
         <a href="../index.html">📋 Todos los Equipos</a>
         <a href="../Servialco/servialco.html">🏢 SERVIALCO</a>
@@ -22,6 +23,7 @@
         <a href="../ARKY/arky.html">🏢 ARKY</a>
     </div>
 
+    <!-- CABECERA -->
     <div class="header">
         <div class="header-left">
             <img src="../logo-servialco.png" alt="Logo" onerror="this.style.display='none'">
@@ -30,15 +32,16 @@
         <button class="btn-accion" onclick="abrirModal()">+ Actualizar Bitácora (AYS)</button>
     </div>
 
-    <!-- PESTAÑAS DE FILTRADO POR EMPRESA -->
+    <!-- PESTAÑAS DE FILTRADO INTERNO (SERVIALCO POR DEFECTO) -->
     <div class="tabs">
         <button class="tab-btn active" onclick="filtrarEmpresa('SERVIALCO', this)">🏢 SERVIALCO</button>
         <button class="tab-btn" onclick="filtrarEmpresa('CONSTRUSALCO', this)">🏗️ CONSTRUSALCO</button>
         <button class="tab-btn" onclick="filtrarEmpresa('TODOS', this)">🌐 TODOS (AYS)</button>
     </div>
 
+    <!-- BUSCADOR -->
     <div class="search-container">
-        <input type="text" id="buscador" class="buscador" onkeyup="filtrarTabla()" placeholder="Buscar equipo, serial, responsable o ubicación...">
+        <input type="text" id="buscador" class="buscador" onkeyup="filtrarTabla()" placeholder="Buscar equipo, serial (AYS/Monitor) o responsable...">
         <select id="filtro-estado" class="filtro-estado" onchange="filtrarTabla()">
             <option value="">Todos los Estados</option>
             <option value="ASIGNADO">Asignados</option>
@@ -48,23 +51,37 @@
         </select>
     </div>
 
+    <!-- TABLAS DE DATOS -->
     <div id="sec-computadores" style="display:none;">
-        <h2 class="titulo-seccion">💻 Computadores</h2>
-        <div style="overflow-x:auto;"><table><thead><tr class="filas-cabecera"></tr></thead><tbody id="cuerpo-computadores"></tbody></table></div>
+        <h2 class="titulo-seccion">💻 Computadores (Portátiles y Escritorio)</h2>
+        <div style="overflow-x:auto;">
+            <table>
+                <thead><tr class="filas-cabecera"></tr></thead>
+                <tbody id="cuerpo-computadores"></tbody>
+            </table>
+        </div>
     </div>
 
     <div id="sec-monitores" style="display:none;">
-        <h2 class="titulo-seccion">📺 Monitores</h2>
-        <div style="overflow-x:auto;"><table><thead><tr class="filas-cabecera"></tr></thead><tbody id="cuerpo-monitores"></tbody></table></div>
+        <h2 class="titulo-seccion">📺 Monitores / Pantallas (AYS)</h2>
+        <div style="overflow-x:auto;">
+            <table>
+                <thead><tr class="filas-cabecera"></tr></thead>
+                <tbody id="cuerpo-monitores"></tbody>
+            </table>
+        </div>
     </div>
 
-    <!-- MODAL BITÁCORA -->
+    <!-- MODAL DE BITÁCORA -->
     <div id="miModal" class="modal">
         <div class="modal-content" style="width: 50%; max-width: 600px;">
             <div class="modal-header">Registrar Evento (AYS)</div>
             <div class="form-grid">
                 <div class="form-group"><label>Fecha*</label><input type="date" id="m-fecha" required></div>
-                <div class="form-group"><label>Serial Fábrica o AYS*</label><input type="text" id="m-serial" placeholder="Ej: AS25153 o 2PFCLB3" required></div>
+                
+                <!-- Ajuste visual de la etiqueta para evitar confusiones de los usuarios -->
+                <div class="form-group"><label>Llave: Serial AYS (Equipos) o Serial (Monitores)*</label><input type="text" id="m-serial" placeholder="Ej: AS25153 o 101555" required></div>
+                
                 <div class="form-group"><label>Evento*</label><select id="m-evento"><option value="CAMBIO_USUARIO">Cambio Responsable</option><option value="CREACION_NUEVO">Nuevo</option><option value="DEVOLUCION_PROVEEDOR">Devolución</option></select></div>
                 <div class="form-group"><label>Empresa Destino</label><select id="m-empresa"><option value="SERVIALCO" selected>SERVIALCO</option><option value="CONSTRUSALCO">CONSTRUSALCO</option></select></div>
                 <div class="form-group"><label>Responsable</label><input type="text" id="m-resp"></div>
@@ -81,26 +98,31 @@
         </div>
     </div>
 
-    <!-- MODAL HISTORIAL -->
+    <!-- MODAL DE HISTORIAL -->
     <div id="modalHistorial" class="modal">
         <div class="modal-content" style="width: 80%;">
             <div class="modal-header">Historial: <span id="historial-serial"></span></div>
-            <div style="overflow-x:auto; max-height: 300px;"><table style="width:100%;"><thead><tr><th>Fecha</th><th>Evento</th><th>Responsable</th><th>Ubicación</th><th>Estado</th><th>Obs</th></tr></thead><tbody id="cuerpo-historial"></tbody></table></div>
+            <div style="overflow-x:auto; max-height: 300px;">
+                <table style="width:100%;">
+                    <thead><tr><th>Fecha</th><th>Evento</th><th>Responsable</th><th>Ubicación</th><th>Estado</th><th>Obs</th></tr></thead>
+                    <tbody id="cuerpo-historial"></tbody>
+                </table>
+            </div>
             <div class="modal-footer"><button class="btn-cancelar" onclick="cerrarHistorial()">Cerrar</button></div>
         </div>
     </div>
 
+    <!-- SCRIPT DE CARGA Y FILTRADO -->
     <script src="../js/main.js"></script>
     <script>
-        let empresaFiltroActiva = 'SERVIALCO'; // Por defecto
+        let empresaFiltroActiva = 'SERVIALCO'; 
 
-        // Función que se ejecuta al cargar la página
         window.onload = () => { 
-            // El parámetro 'true' indica que es AYS y debe mostrar la columna de serial_proveedor
-            cargarModulo('ays-servialco.csv', true); 
+            // Cargar archivo CSV. Le mandamos 'false' en el segundo parámetro porque ahora
+            // ya configuramos que el CSV tenga como llave principal única la columna 1 (serial_ays).
+            cargarModulo('ays-servialco.csv', false); 
         };
 
-        // Función para cambiar de pestaña
         function filtrarEmpresa(empresa, btn) {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
@@ -108,7 +130,6 @@
             filtrarTabla();
         }
 
-        // Sobreescribimos filtrarTabla para inyectar la lógica de empresa
         function filtrarTabla() {
             let filtroGlobal = document.getElementById("buscador").value.toUpperCase();
             let filtroEstado = document.getElementById("filtro-estado").value.toUpperCase();
@@ -119,8 +140,6 @@
                 let coincideEstado = (filtroEstado === "" || fila.getAttribute('data-estado') === filtroEstado);
                 let coincideGlobal = fila.innerText.toUpperCase().includes(filtroGlobal);
                 
-                // LÓGICA DE EMPRESA: 
-                // Extraemos la empresa del atributo de la fila. Si está en blanco o no es Construsalco, la asumimos como Servialco.
                 let empresaFila = fila.getAttribute('data-empresa');
                 if (!empresaFila || empresaFila.trim() === '') {
                     empresaFila = 'SERVIALCO';
