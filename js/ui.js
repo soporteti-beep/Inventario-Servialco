@@ -1,110 +1,130 @@
 // ==========================================
-// INTERFAZ GRÁFICA Y MODALES (DOM)
+// ui.js - INTERFAZ GRÁFICA Y MODALES (DOM)
 // ==========================================
 
-function renderizarEncabezados() {
+function renderizarEncabezados(esModuloYS) {
     let htmlCabecera = '';
-    encabezadosGlobales.forEach((h, index) => {
-        if (h === 'serial') return; // Ocultamos la de fábrica
-        // Ocultamos las columnas viejas de monitor ya que ahora serán filas independientes
-        if (h === 'monitor_marca' || h === 'monitor_serial') return; 
-        
+    encabezadosGlobales.forEach((h) => {
+        if (!esModuloYS && h.trim() === 'serial_proveedor') return; 
         let nombreMostrar = h.toUpperCase().replace(/_/g, ' ');
-        if (h === 'serial_proveedor') nombreMostrar = 'SERIAL AYS'; 
-        
+        if (esModuloYS && h.trim() === 'serial_proveedor') nombreMostrar = 'SERIAL PROVEEDOR';
         htmlCabecera += `<th>${nombreMostrar}</th>`;
     });
-    document.getElementById('filas-cabecera').innerHTML = htmlCabecera;
+    document.querySelectorAll('.filas-cabecera').forEach(el => el.innerHTML = htmlCabecera);
 }
 
-function renderizarPestanas(gruposUnicos) {
-    const tabsContainer = document.getElementById('tabs-container');
-    tabsContainer.innerHTML = `<button class="tab-btn active" onclick="filtrarPorPestana('TODOS', this)">TODOS LOS EQUIPOS</button>`;
-    
-    gruposUnicos.forEach(grupo => {
-        if(grupo !== " - ") tabsContainer.innerHTML += `<button class="tab-btn" onclick="filtrarPorPestana('${grupo}', this)">${grupo}</button>`;
-    });
-}
+function pintarTablas(datos, esModuloYS) {
+    let htmlComps = '';
+    let htmlMons = '';
 
-function pintarTabla(datos) {
-    let htmlCuerpo = '';
-    let idxEstado = encabezadosGlobales.indexOf('estado');
-    let idxSerialOrig = encabezadosGlobales.indexOf('serial');
-    let idxSerialProv = encabezadosGlobales.indexOf('serial_proveedor');
+    let idxEstado = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'estado');
+    let idxEmpresa = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'empresa');
+    let idxTipo = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'tipo');
+    let idxSerial = 0; 
 
     datos.forEach(fila => {
-        let estadoActual = idxEstado > -1 ? fila.data[idxEstado].trim().toUpperCase() : '';
-        let valSerialOrig = idxSerialOrig > -1 ? fila.data[idxSerialOrig].trim() : '';
-        let valSerialProv = idxSerialProv > -1 ? fila.data[idxSerialProv].trim() : '';
+        let celdas = fila.data;
+        let estadoActual = idxEstado > -1 && celdas[idxEstado] ? celdas[idxEstado].trim().toUpperCase() : '';
+        let empresaActual = idxEmpresa > -1 && celdas[idxEmpresa] ? celdas[idxEmpresa].trim().toUpperCase() : '';
+        let valSerial = celdas[idxSerial] ? celdas[idxSerial].trim() : '';
+        let tipoVal = idxTipo > -1 && celdas[idxTipo] ? celdas[idxTipo].trim().toUpperCase() : '';
 
-        htmlCuerpo += `<tr class="fila-dato" data-grupo="${fila.grupo}" data-estado="${estadoActual}">`;
+        let esMonitor = tipoVal.includes('MONITOR') || tipoVal.includes('PANTALLA');
+
+        let filaHtml = `<tr class="fila-dato ${esMonitor ? 'fila-monitor' : 'fila-comp'}" data-estado="${estadoActual}" data-empresa="${empresaActual}">`;
         
-        fila.data.forEach((celda, index) => {
-            if (index === idxSerialOrig) return; // Saltamos la original
-            // Saltamos las columnas viejas de monitor
-            if (encabezadosGlobales[index] === 'monitor_marca' || encabezadosGlobales[index] === 'monitor_serial') return;
+        celdas.forEach((celda, index) => {
+            if (!esModuloYS && encabezadosGlobales[index].trim() === 'serial_proveedor') return;
 
-            let contenido = celda;
+            let contenido = celda || '';
             if (index === idxEstado) {
-                let claseBadge = celda === 'ASIGNADO' ? 'bg-asignado' : (celda === 'BODEGA' ? 'bg-bodega' : 'bg-default');
-                contenido = `<span class="badge ${claseBadge}">${celda}</span>`;
+                let claseBadge = contenido === 'ASIGNADO' ? 'bg-asignado' : (contenido === 'BODEGA' ? 'bg-bodega' : 'bg-default');
+                contenido = `<span class="badge ${claseBadge}">${contenido}</span>`;
             }
             
-            if (index === idxSerialProv) {
-                let serialAMostrar = celda.trim() !== '' ? celda : valSerialOrig;
-                contenido = `<a href="javascript:void(0)" onclick="verHistorial('${valSerialOrig}', '${valSerialProv}')" style="color: #0D6BB4; font-weight: bold; text-decoration: underline;" title="Ver historial de trazabilidad">${serialAMostrar}</a>`;
+            if (index === idxSerial && valSerial !== '') {
+                contenido = `<a href="javascript:void(0)" onclick="verHistorial('${valSerial}')" style="color: inherit; font-weight: bold; text-decoration: underline; cursor: pointer;">${valSerial}</a>`;
             }
             
-            htmlCuerpo += `<td>${contenido}</td>`;
+            filaHtml += `<td>${contenido}</td>`;
         });
-        htmlCuerpo += '</tr>';
+        filaHtml += '</tr>';
+
+        if (esMonitor) htmlMons += filaHtml;
+        else htmlComps += filaHtml;
     });
-    document.getElementById('cuerpo-tabla').innerHTML = htmlCuerpo;
+
+    document.getElementById('cuerpo-computadores').innerHTML = htmlComps;
+    document.getElementById('cuerpo-monitores').innerHTML = htmlMons;
+}
+
+function filtrarTabla() {
+    let filtroGlobal = document.getElementById("buscador") ? document.getElementById("buscador").value.toUpperCase() : '';
+    let filtroEstado = document.getElementById("filtro-estado") ? document.getElementById("filtro-estado").value.toUpperCase() : '';
+
+    let countC = 0, countM = 0;
+
+    document.querySelectorAll('.fila-dato').forEach(fila => {
+        let coincideEstado = (filtroEstado === "" || fila.getAttribute('data-estado') === filtroEstado);
+        let coincideGlobal = fila.innerText.toUpperCase().includes(filtroGlobal);
+        
+        if (coincideEstado && coincideGlobal) {
+            fila.style.display = "";
+            if (fila.classList.contains('fila-comp')) countC++;
+            else if (fila.classList.contains('fila-monitor')) countM++;
+        } else {
+            fila.style.display = "none";
+        }
+    });
+
+    if(document.getElementById('sec-computadores')) document.getElementById('sec-computadores').style.display = countC > 0 ? 'block' : 'none';
+    if(document.getElementById('sec-monitores')) document.getElementById('sec-monitores').style.display = countM > 0 ? 'block' : 'none';
 }
 
 function abrirModal() { 
-    document.getElementById('miModal').style.display = 'block'; 
-    const hoy = new Date().toISOString().split('T')[0];
-    document.getElementById('m-fecha').value = hoy;
-    ajustarFormulario();
+    if(document.getElementById('miModal')) document.getElementById('miModal').style.display = 'block'; 
+    if(document.getElementById('m-fecha')) document.getElementById('m-fecha').value = new Date().toISOString().split('T')[0];
 }
 
-function cerrarModal() { 
-    document.getElementById('miModal').style.display = 'none'; 
-}
+function cerrarModal() { if(document.getElementById('miModal')) document.getElementById('miModal').style.display = 'none'; }
+function cerrarHistorial() { if(document.getElementById('modalHistorial')) document.getElementById('modalHistorial').style.display = 'none'; }
 
-function ajustarFormulario() {
-    let evento = document.getElementById('m-evento').value;
-    let resp = document.getElementById('m-resp');
-    let area = document.getElementById('m-area');
-    let cargo = document.getElementById('m-cargo');
-    let estado = document.getElementById('m-estado');
-    let grupoTipo = document.getElementById('grupo-tipo-activo');
+async function verHistorial(serialBuscado) {
+    try {
+        document.getElementById('historial-serial').innerText = serialBuscado;
+        document.getElementById('cuerpo-historial').innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 20px;">Consultando bitácora... ⏳</td></tr>';
+        document.getElementById('modalHistorial').style.display = 'block';
 
-    resp.disabled = false; area.disabled = false; cargo.disabled = false;
-    
-    // Mostrar campo "Tipo de Activo" solo si estamos creando uno nuevo
-    if (evento === 'CREACION_NUEVO') {
-        grupoTipo.style.display = 'block';
-    } else {
-        grupoTipo.style.display = 'none';
-    }
+        const response = await fetch('../bitacora.csv?' + new Date().getTime());
+        const data = await response.text();
+        const filas = data.split('\n').filter(row => row.trim().length > 0);
+        
+        let htmlHistorial = '';
+        let hayRegistros = false;
+        
+        let sTarget1 = serialBuscado ? serialBuscado.toUpperCase() : '';
 
-    if (evento === 'DEVOLUCION_PROVEEDOR') {
-        resp.value = 'PROVEEDOR'; resp.disabled = true;
-        area.value = 'N/A'; area.disabled = true;
-        cargo.value = 'N/A'; cargo.disabled = true;
-        estado.value = 'DEVUELTO';
-    } else if (evento === 'REPARACION') {
-        estado.value = 'SOPORTE';
-    } else {
-        if(resp.value === 'PROVEEDOR' || resp.disabled) {
-            resp.value = ''; area.value = ''; cargo.value = '';
+        for(let i=1; i<filas.length; i++) {
+            let sep = filas[i].includes(';') ? ';' : ',';
+            let cols = filas[i].split(sep);
+            let sBit = cols[1] ? cols[1].trim().toUpperCase() : '';
+            
+            if(sBit === sTarget1) {
+                hayRegistros = true;
+                htmlHistorial += `<tr style="border-bottom: 1px solid #ddd;">
+                    <td style="padding: 10px;">${cols[0] || ''}</td>
+                    <td style="padding: 10px;"><strong>${cols[2] || ''}</strong></td>
+                    <td style="padding: 10px;">${cols[3] || ''}</td>
+                    <td style="padding: 10px;">${cols[6] || ''}</td>
+                    <td style="padding: 10px;"><span class="badge bg-default">${cols[7] || ''}</span></td>
+                    <td style="padding: 10px;">${cols[10] || ''}</td>
+                </tr>`;
+            }
         }
-        estado.value = 'ASIGNADO';
+        if(!hayRegistros) htmlHistorial = '<tr><td colspan="6" style="text-align:center; padding: 20px;">No hay registros en la bitácora para este serial.</td></tr>';
+        document.getElementById('cuerpo-historial').innerHTML = htmlHistorial;
+    } catch(e) { 
+        document.getElementById('cuerpo-historial').innerHTML = '<tr><td colspan="6" style="text-align:center; color:red; padding: 20px;">Error al cargar historial.</td></tr>'; 
+        console.error(e);
     }
-}
-
-function cerrarHistorial() {
-    document.getElementById('modalHistorial').style.display = 'none';
 }
