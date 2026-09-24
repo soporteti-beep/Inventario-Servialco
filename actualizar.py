@@ -3,7 +3,6 @@ import os
 from datetime import datetime
 
 def detectar_separador(ruta_archivo):
-    """Detecta dinámicamente si el CSV usa coma (,) o punto y coma (;)"""
     with open(ruta_archivo, 'r', encoding='utf-8-sig') as f:
         primera_linea = f.readline()
         return ';' if ';' in primera_linea else ','
@@ -27,7 +26,6 @@ def procesar_inventario():
 
     fecha_hoy = datetime.now().strftime('%Y-%m-%d')
 
-    # 1. Leer los inventarios base
     for clave, ruta in rutas_csv.items():
         if os.path.exists(ruta):
             sep = detectar_separador(ruta)
@@ -41,20 +39,15 @@ def procesar_inventario():
                         fila[0].strip().upper(): fila 
                         for fila in filas[1:] if fila and len(fila) > 0 and fila[0].strip()
                     }
-        else:
-            print(f"Advertencia: No se encontró la ruta {ruta}")
 
-    # 2. Leer la bitácora
     sep_bit = detectar_separador(bitacora_path)
     with open(bitacora_path, mode='r', encoding='utf-8-sig') as f:
         reader = csv.reader(f, delimiter=sep_bit)
         bitacora_filas = list(reader)
 
     if len(bitacora_filas) <= 1:
-        print("Bitácora vacía o solo contiene cabecera.")
         return
 
-    # 3. Procesar eventos de la bitácora
     for fila in bitacora_filas[1:]:
         if not fila or len(fila) < 8:
             continue
@@ -68,10 +61,13 @@ def procesar_inventario():
         ubicacion = fila[6].strip() if len(fila) > 6 else ''
         estado = fila[7].strip().upper() if len(fila) > 7 else ''
         proveedor = fila[8].strip().upper() if len(fila) > 8 else ''
-        empresa = fila[9].strip().upper() if len(fila) > 9 else ''
         obs = fila[10].strip() if len(fila) > 10 else ''
 
         if not serial:
+            continue
+
+        # IGNORAR CREACIONES: Se delegan a Nuevo.py
+        if evento == 'NUEVO':
             continue
 
         clave_modulo = None
@@ -93,8 +89,6 @@ def procesar_inventario():
             idx_cargo = headers_target.index('cargo') if 'cargo' in headers_target else -1
             idx_ubic = headers_target.index('ubicacion') if 'ubicacion' in headers_target else -1
             idx_estado = headers_target.index('estado') if 'estado' in headers_target else -1
-            idx_prov_target = headers_target.index('proveedor') if 'proveedor' in headers_target else -1
-            idx_emp_target = headers_target.index('empresa') if 'empresa' in headers_target else -1
             idx_prov_serial = headers_target.index('serial_proveedor') if 'serial_proveedor' in headers_target else -1
             idx_obs = headers_target.index('observaciones') if 'observaciones' in headers_target else -1
             idx_fecha = headers_target.index('ultima_actualizacion') if 'ultima_actualizacion' in headers_target else -1
@@ -109,18 +103,12 @@ def procesar_inventario():
                         equipo_encontrado = reg
                         break
 
-            # --- NUEVA LÓGICA: CREAR EQUIPO SI NO EXISTE ---
+            # SI EL EQUIPO NO EXISTE, LO IGNORAMOS (Evita el error del serial '123')
             if not equipo_encontrado:
-                equipo_encontrado = [''] * len(headers_target)
-                equipo_encontrado[0] = serial # Columna 1 siempre es el Serial principal
-                if idx_prov_target > -1: equipo_encontrado[idx_prov_target] = proveedor
-                if idx_emp_target > -1: equipo_encontrado[idx_emp_target] = empresa
-                
-                # Lo agregamos al diccionario del módulo correspondiente
-                inventario_target[serial] = equipo_encontrado
+                print(f"Ignorando actualización de {serial}: No existe en el inventario.")
+                continue
 
-            # --- ACTUALIZACIÓN DE CAMPOS ---
-            max_idx = max(idx_resp, idx_area, idx_cargo, idx_ubic, idx_estado, idx_obs, idx_fecha, idx_entrega, idx_prov_target, idx_emp_target)
+            max_idx = max(idx_resp, idx_area, idx_cargo, idx_ubic, idx_estado, idx_obs, idx_fecha, idx_entrega)
             while len(equipo_encontrado) <= max_idx:
                 equipo_encontrado.append('')
 
@@ -130,11 +118,9 @@ def procesar_inventario():
             if ubicacion and idx_ubic > -1: equipo_encontrado[idx_ubic] = ubicacion
             if estado and idx_estado > -1: equipo_encontrado[idx_estado] = estado
             if obs and idx_obs > -1: equipo_encontrado[idx_obs] = obs
-            
             if fecha_entrega and idx_entrega > -1: equipo_encontrado[idx_entrega] = fecha_entrega
             if idx_fecha > -1: equipo_encontrado[idx_fecha] = fecha_hoy
 
-    # 4. Guardar los archivos CSV actualizados
     for clave, ruta in rutas_csv.items():
         if clave in modulos_data and clave in modulos_headers:
             sep = modulos_separadores.get(clave, ',')
@@ -142,7 +128,6 @@ def procesar_inventario():
                 writer = csv.writer(f, delimiter=sep)
                 writer.writerow(modulos_headers[clave])
                 writer.writerows(modulos_data[clave].values())
-            print(f"Archivo {ruta} actualizado exitosamente.")
 
 if __name__ == '__main__':
     procesar_inventario()
