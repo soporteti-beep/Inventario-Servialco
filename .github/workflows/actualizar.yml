@@ -28,6 +28,9 @@ jobs:
       - name: Ejecutar script de actualización (Equipos existentes)
         run: python actualizar.py
 
+      - name: Ejecutar script de eliminación (Eliminar equipos)
+        run: python eliminar.py
+
       - name: Guardar inventarios en GitHub (Para la Web)
         run: |
           git config --global user.name "GitHub Actions Bot"
