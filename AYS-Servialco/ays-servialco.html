@@ -4,7 +4,13 @@
     <meta charset="UTF-8">
     <title>Inventario AYS</title>
     <link rel="stylesheet" href="../css/style.css">
-    <style>:root { --tema-color: #E67E22; }</style>
+    <style>
+        :root { --tema-color: #E67E22; }
+        .tabs { display: flex; gap: 8px; margin-bottom: 15px; overflow-x: auto; }
+        .tab-btn { background-color: #e0e0e0; border: none; padding: 8px 18px; cursor: pointer; border-radius: 6px; font-weight: bold; color: #333; transition: 0.3s; white-space: nowrap; }
+        .tab-btn:hover { background-color: #f5b041; }
+        .tab-btn.active { background-color: #E67E22; color: white; }
+    </style>
 </head>
 <body>
 
@@ -24,8 +30,15 @@
         <button class="btn-accion" onclick="abrirModal()">+ Actualizar Bitácora (AYS)</button>
     </div>
 
+    <!-- PESTAÑAS DE FILTRADO POR EMPRESA -->
+    <div class="tabs">
+        <button class="tab-btn active" onclick="filtrarEmpresa('SERVIALCO', this)">🏢 SERVIALCO</button>
+        <button class="tab-btn" onclick="filtrarEmpresa('CONSTRUSALCO', this)">🏗️ CONSTRUSALCO</button>
+        <button class="tab-btn" onclick="filtrarEmpresa('TODOS', this)">🌐 TODOS (AYS)</button>
+    </div>
+
     <div class="search-container">
-        <input type="text" id="buscador" class="buscador" onkeyup="filtrarTabla()" placeholder="Buscar equipo, serial o responsable...">
+        <input type="text" id="buscador" class="buscador" onkeyup="filtrarTabla()" placeholder="Buscar equipo, serial, responsable o ubicación...">
         <select id="filtro-estado" class="filtro-estado" onchange="filtrarTabla()">
             <option value="">Todos los Estados</option>
             <option value="ASIGNADO">Asignados</option>
@@ -51,9 +64,9 @@
             <div class="modal-header">Registrar Evento (AYS)</div>
             <div class="form-grid">
                 <div class="form-group"><label>Fecha*</label><input type="date" id="m-fecha" required></div>
-                <div class="form-group"><label>Serial Fábrica*</label><input type="text" id="m-serial" required></div>
+                <div class="form-group"><label>Serial Fábrica o AYS*</label><input type="text" id="m-serial" placeholder="Ej: AS25153 o 2PFCLB3" required></div>
                 <div class="form-group"><label>Evento*</label><select id="m-evento"><option value="CAMBIO_USUARIO">Cambio Responsable</option><option value="CREACION_NUEVO">Nuevo</option><option value="DEVOLUCION_PROVEEDOR">Devolución</option></select></div>
-                <div class="form-group"><label>Empresa Destino</label><select id="m-empresa"><option value="CONSTRUSALCO">CONSTRUSALCO</option><option value="SERVIALCO">SERVIALCO</option></select></div>
+                <div class="form-group"><label>Empresa Destino</label><select id="m-empresa"><option value="SERVIALCO" selected>SERVIALCO</option><option value="CONSTRUSALCO">CONSTRUSALCO</option></select></div>
                 <div class="form-group"><label>Responsable</label><input type="text" id="m-resp"></div>
                 <div class="form-group"><label>Área</label><input type="text" id="m-area"></div>
                 <div class="form-group"><label>Cargo</label><input type="text" id="m-cargo"></div>
@@ -68,6 +81,7 @@
         </div>
     </div>
 
+    <!-- MODAL HISTORIAL -->
     <div id="modalHistorial" class="modal">
         <div class="modal-content" style="width: 80%;">
             <div class="modal-header">Historial: <span id="historial-serial"></span></div>
@@ -77,6 +91,55 @@
     </div>
 
     <script src="../js/main.js"></script>
-    <script>window.onload = () => { cargarModulo('ays-servialco.csv', true); };</script>
+    <script>
+        let empresaFiltroActiva = 'SERVIALCO'; // Por defecto
+
+        // Función que se ejecuta al cargar la página
+        window.onload = () => { 
+            // El parámetro 'true' indica que es AYS y debe mostrar la columna de serial_proveedor
+            cargarModulo('ays-servialco.csv', true); 
+        };
+
+        // Función para cambiar de pestaña
+        function filtrarEmpresa(empresa, btn) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            empresaFiltroActiva = empresa;
+            filtrarTabla();
+        }
+
+        // Sobreescribimos filtrarTabla para inyectar la lógica de empresa
+        function filtrarTabla() {
+            let filtroGlobal = document.getElementById("buscador").value.toUpperCase();
+            let filtroEstado = document.getElementById("filtro-estado").value.toUpperCase();
+
+            let countC = 0, countM = 0;
+
+            document.querySelectorAll('.fila-dato').forEach(fila => {
+                let coincideEstado = (filtroEstado === "" || fila.getAttribute('data-estado') === filtroEstado);
+                let coincideGlobal = fila.innerText.toUpperCase().includes(filtroGlobal);
+                
+                // LÓGICA DE EMPRESA: 
+                // Extraemos la empresa del atributo de la fila. Si está en blanco o no es Construsalco, la asumimos como Servialco.
+                let empresaFila = fila.getAttribute('data-empresa');
+                if (!empresaFila || empresaFila.trim() === '') {
+                    empresaFila = 'SERVIALCO';
+                }
+
+                let coincideEmpresa = (empresaFiltroActiva === "TODOS" || empresaFila.includes(empresaFiltroActiva));
+                
+                if (coincideEstado && coincideEmpresa && coincideGlobal) {
+                    fila.style.display = "";
+                    if (fila.classList.contains('fila-comp')) countC++;
+                    else if (fila.classList.contains('fila-monitor')) countM++;
+                } else {
+                    fila.style.display = "none";
+                }
+            });
+
+            document.getElementById('sec-computadores').style.display = countC > 0 ? 'block' : 'none';
+            document.getElementById('sec-monitores').style.display = countM > 0 ? 'block' : 'none';
+        }
+    </script>
 </body>
 </html>
