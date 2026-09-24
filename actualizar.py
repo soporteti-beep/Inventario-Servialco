@@ -95,6 +95,7 @@ def procesar_inventario():
             idx_prov = headers_target.index('serial_proveedor') if 'serial_proveedor' in headers_target else -1
             idx_obs = headers_target.index('observaciones') if 'observaciones' in headers_target else -1
             idx_fecha = headers_target.index('ultima_actualizacion') if 'ultima_actualizacion' in headers_target else -1
+            idx_entrega = headers_target.index('fecha_entrega') if 'fecha_entrega' in headers_target else -1
 
             equipo_encontrado = None
             if serial in inventario_target:
@@ -107,7 +108,7 @@ def procesar_inventario():
 
             if equipo_encontrado:
                 # Asegurar que la fila tenga suficiente longitud para los índices de las columnas
-                max_idx = max(idx_resp, idx_area, idx_cargo, idx_ubic, idx_estado, idx_obs, idx_fecha)
+                max_idx = max(idx_resp, idx_area, idx_cargo, idx_ubic, idx_estado, idx_obs, idx_fecha, idx_entrega)
                 while len(equipo_encontrado) <= max_idx:
                     equipo_encontrado.append('')
 
@@ -119,6 +120,7 @@ def procesar_inventario():
                 if estado and idx_estado > -1: equipo_encontrado[idx_estado] = estado
                 if obs and idx_obs > -1: equipo_encontrado[idx_obs] = obs
                 if fecha and idx_fecha > -1: equipo_encontrado[idx_fecha] = fecha
+                if fecha and idx_entrega > -1: equipo_encontrado[idx_entrega] = fecha
 
     # 4. Guardar los archivos CSV actualizados
     for clave, ruta in rutas_csv.items():
