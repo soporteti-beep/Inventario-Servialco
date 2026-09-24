@@ -22,12 +22,19 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Ejecutar script de actualización
+      - name: Ejecutar script de actualización (Módulos de Inventario)
         run: python actualizar.py
 
-      - name: Guardar los archivos actualizados en GitHub
+      - name: Guardar inventarios en GitHub (Para la Web)
         run: |
           git config --global user.name "GitHub Actions Bot"
           git config --global user.email "actions@github.com"
           git add Servialco/*.csv AYS-Servialco/*.csv UNICAT/*.csv ARKY/*.csv
-          git diff --quiet && git diff --staged --quiet || (git commit -m "🤖 Actualización automática de CSVs desde Bitácora" && git push)
+          git diff --quiet && git diff --staged --quiet || (git commit -m "🤖 Actualización automática de CSVs" && git push)
+
+      - name: Sincronizar Bitácora con Excel (Google Sheets)
+        env:
+          GDRIVE_CREDENTIALS: ${{ secrets.GDRIVE_CREDENTIALS }}
+        run: |
+          pip install gspread==5.12.4
+          python actualizar_sheet.py
