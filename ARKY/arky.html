@@ -75,7 +75,11 @@
             <div class="form-grid">
                 <div class="form-group"><label>Fecha*</label><input type="date" id="m-fecha" required></div>
                 <div class="form-group"><label>Serial*</label><input type="text" id="m-serial" required></div>
-                <div class="form-group"><label>Evento*</label><select id="m-evento"><option value="CAMBIO_USUARIO">Cambio Responsable</option><option value="CREACION_NUEVO">Nuevo</option><option value="DEVOLUCION_PROVEEDOR">Devolución</option></select></div>
+                <div class="form-group"><label>Evento*</label><select id="m-evento">
+                    <option value="CAMBIO_USUARIO">Cambio Responsable</option>
+                    <option value="CREACION_NUEVO">Nuevo</option>
+                    <option value="ELIMINAR">Eliminar</option> <!-- Este es el cambio clave -->
+                </select></div>
                 <div class="form-group"><label>Responsable</label><input type="text" id="m-resp"></div>
                 <div class="form-group"><label>Área</label><input type="text" id="m-area"></div>
                 <div class="form-group"><label>Cargo</label><input type="text" id="m-cargo"></div>
