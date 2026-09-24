@@ -23,16 +23,16 @@ jobs:
           python-version: '3.10'
 
       - name: Ejecutar script de creación (Nuevos equipos)
-        run: python Nuevo.py
+        run: python py.py/Nuevo.py
 
       - name: Ejecutar script de actualización (Equipos existentes)
-        run: python actualizar.py
+        run: python py.py/actualizar.py
 
       - name: Ejecutar script de eliminación (Eliminar equipos)
-        run: python eliminar.py
+        run: python py.py/eliminar.py
 
       - name: Ejecutar script de devolución (Devolver a proveedor)
-        run: python Devolver.py
+        run: python py.py/Devolver.py
 
       - name: Guardar inventarios en GitHub (Para la Web)
         run: |
@@ -46,4 +46,4 @@ jobs:
           GDRIVE_CREDENTIALS: ${{ secrets.GDRIVE_CREDENTIALS }}
         run: |
           pip install gspread==5.12.4
-          python actualizar_sheet.py
+          python py.py/actualizar_sheet.py
