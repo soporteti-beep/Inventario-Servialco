@@ -44,7 +44,7 @@ async function cargarModulo(csvUrl, esModuloYS) {
                     let colsBit = filasBit[i].split(sepBit);
                     if (colsBit.length < 11) continue;
 
-                    let bFechaEntrega = colsBit[0] ? colsBit[0].trim() : ''; // Fecha elegida manualmente
+                    let bFechaEntrega = colsBit[0] ? colsBit[0].trim() : '';
                     let bSerial = colsBit[1] ? colsBit[1].trim().toUpperCase() : '';
                     let bResp = colsBit[3] ? colsBit[3].trim() : '';
                     let bArea = colsBit[4] ? colsBit[4].trim() : '';
@@ -75,10 +75,8 @@ async function cargarModulo(csvUrl, esModuloYS) {
                         if (idxEstado > -1 && bEstado) equipoEncontrado[idxEstado] = bEstado;
                         if (idxObs > -1 && bObs) equipoEncontrado[idxObs] = bObs;
                         
-                        // FECHA ENTREGA -> Fecha elegida en el modal
                         if (idxEntrega > -1 && bFechaEntrega) equipoEncontrado[idxEntrega] = bFechaEntrega;
                         
-                        // ULTIMA ACTUALIZACION -> Fecha de HOY (ahora)
                         if (idxFechaAct > -1) equipoEncontrado[idxFechaAct] = fechaHoy;
                     }
                 }
@@ -112,7 +110,7 @@ async function guardarEnGitHub(proveedorForzado, empresaForzada) {
 
     document.querySelector('.modal-footer .btn-guardar').innerText = "Guardando... ⏳";
 
-    // Datos del NUEVO evento que el usuario está registrando
+    // 11 Columnas exactas para el CSV
     const dataNuevoEvento = [
         fechaEntrega, 
         serial, 
@@ -124,19 +122,18 @@ async function guardarEnGitHub(proveedorForzado, empresaForzada) {
         document.getElementById('m-estado').value, 
         proveedorForzado, 
         empresaForzada, 
-        document.getElementById('m-obs').value, 
-        ''
+        document.getElementById('m-obs').value
     ].map(val => val.replace(/,/g, '')); 
 
     try {
-        const getRes = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/bitacora.csv`, { headers: { 'Authorization': `token ${token}` }});
+        const urlAPI = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/bitacora.csv`;
+        const getRes = await fetch(urlAPI, { headers: { 'Authorization': `token ${token}` }});
         if (!getRes.ok) throw new Error("Fallo de autenticación. Verifica tu Token.");
         
         const fileData = await getRes.json();
         const contenidoActual = decodeURIComponent(escape(atob(fileData.content)));
         const filasBit = contenidoActual.split('\n').filter(row => row.trim().length > 0);
 
-        // 1. Verificar si este serial ya tiene algún registro previo en la bitácora
         let existeEnBitacora = false;
         for(let i = 1; i < filasBit.length; i++) {
             let sep = filasBit[i].includes(';') ? ';' : ',';
@@ -150,7 +147,6 @@ async function guardarEnGitHub(proveedorForzado, empresaForzada) {
 
         let lineasNuevas = "";
 
-        // 2. SI NO EXISTÍA EN LA BITÁCORA: Capturamos automáticamente su estado PREVIO antes de aplicar el nuevo cambio
         if(!existeEnBitacora) {
             let equipoPrevio = mapaInventarioGlobal[serial];
             let idxProv = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'serial_proveedor');
@@ -175,11 +171,12 @@ async function guardarEnGitHub(proveedorForzado, empresaForzada) {
                 let prevEstado = idxEstado > -1 && equipoPrevio[idxEstado] ? equipoPrevio[idxEstado].trim() : '';
                 let prevFecha = idxEntrega > -1 && equipoPrevio[idxEntrega] && equipoPrevio[idxEntrega].trim() !== '' 
                     ? equipoPrevio[idxEntrega].trim() 
-                    : '2025-06-13'; // Fecha por defecto si no tenía
+                    : '2025-06-13'; 
                 let prevObs = idxObs > -1 && equipoPrevio[idxObs] && equipoPrevio[idxObs].trim() !== '' 
                     ? equipoPrevio[idxObs].trim() 
                     : 'Asignación inicial previa a la actualización web';
 
+                // 11 Columnas exactas para el registro inicial
                 const dataInicial = [
                     prevFecha, 
                     serial, 
@@ -191,37 +188,44 @@ async function guardarEnGitHub(proveedorForzado, empresaForzada) {
                     prevEstado, 
                     proveedorForzado, 
                     empresaForzada, 
-                    prevObs, 
-                    ''
+                    prevObs
                 ].map(val => val.replace(/,/g, ''));
 
                 lineasNuevas += "\n" + dataInicial.join(',');
             }
         }
 
-        // 3. Agregamos la línea del nuevo cambio que se acaba de llenar en el formulario
         lineasNuevas += "\n" + dataNuevoEvento.join(',');
-
         const contenidoNuevo = contenidoActual + lineasNuevas;
 
-        const putRes = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/bitacora.csv`, {
+        const putRes = await fetch(urlAPI, {
             method: 'PUT',
-            headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
+            headers: { 
+                'Authorization': `token ${token}`, 
+                'Content-Type': 'application/json' 
+            },
             body: JSON.stringify({
                 message: `🚀 Evento ${proveedorForzado}: ${serial}`,
                 content: btoa(unescape(encodeURIComponent(contenidoNuevo))),
-                sha: fileData.sha
+                sha: fileData.sha,
+                branch: 'main' // Aseguramos que apunte a la rama principal
             })
         });
 
         if (putRes.ok) {
             alert('¡Evento y trazabilidad histórica registrados exitosamente! La página se recargará.');
-            cerrarModal();
+            cerrarModal(); // Asegúrate de que esta función exista en ui.js
             location.reload();
-        } else throw new Error("No se pudo guardar.");
+        } else {
+            const errorDetails = await putRes.json();
+            throw new Error(`Error de GitHub: ${errorDetails.message}`);
+        }
     } catch (error) {
         alert("Error: " + error.message);
-        localStorage.removeItem('gh_token'); 
+        // Si el error es de autenticación, borramos el token para volver a pedirlo
+        if (error.message.includes("autenticación") || error.message.includes("Bad credentials")) {
+            localStorage.removeItem('gh_token'); 
+        }
     } finally {
         document.querySelector('.modal-footer .btn-guardar').innerText = "💾 Guardar Evento";
     }
