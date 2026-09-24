@@ -64,6 +64,7 @@ async function cargarModulo(csvUrl, esModuloYS) {
                         let idxEstado = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'estado');
                         let idxObs = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'observaciones');
                         let idxFecha = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'ultima_actualizacion');
+                        let idxEntrega = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'fecha_entrega');
 
                         if (idxResp > -1 && bResp) equipoEncontrado[idxResp] = bResp;
                         if (idxArea > -1 && bArea) equipoEncontrado[idxArea] = bArea;
@@ -72,6 +73,7 @@ async function cargarModulo(csvUrl, esModuloYS) {
                         if (idxEstado > -1 && bEstado) equipoEncontrado[idxEstado] = bEstado;
                         if (idxObs > -1 && bObs) equipoEncontrado[idxObs] = bObs;
                         if (idxFecha > -1 && bFecha) equipoEncontrado[idxFecha] = bFecha;
+                        if (idxEntrega > -1 && bFecha) equipoEncontrado[idxEntrega] = bFecha;
                     }
                 }
             }
@@ -85,7 +87,7 @@ async function cargarModulo(csvUrl, esModuloYS) {
         if (typeof window.filtrarTabla === 'function') {
             window.filtrarTabla();
         } else {
-            filtrarTabla(); // Llama a la local en ui.js si no hay una sobreescrita
+            filtrarTabla();
         }
         
     } catch (e) { console.error("Error cargando módulo", e); }
