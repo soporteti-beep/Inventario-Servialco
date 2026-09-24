@@ -25,7 +25,6 @@ def procesar_inventario():
     modulos_headers = {}
     modulos_separadores = {}
 
-    # Fecha de hoy automática
     fecha_hoy = datetime.now().strftime('%Y-%m-%d')
 
     # 1. Leer los inventarios base
@@ -60,7 +59,7 @@ def procesar_inventario():
         if not fila or len(fila) < 8:
             continue
 
-        fecha_entrega = fila[0].strip() if len(fila) > 0 else '' # Fecha seleccionada en el formulario
+        fecha_entrega = fila[0].strip() if len(fila) > 0 else ''
         serial = fila[1].strip().upper() if len(fila) > 1 else ''
         evento = fila[2].strip().upper() if len(fila) > 2 else ''
         resp = fila[3].strip() if len(fila) > 3 else ''
@@ -89,13 +88,14 @@ def procesar_inventario():
             inventario_target = modulos_data[clave_modulo]
             headers_target = [h.strip().lower() for h in modulos_headers[clave_modulo]]
 
-            # Búsqueda dinámica de índices
             idx_resp = headers_target.index('responsable') if 'responsable' in headers_target else -1
             idx_area = headers_target.index('area') if 'area' in headers_target else -1
             idx_cargo = headers_target.index('cargo') if 'cargo' in headers_target else -1
             idx_ubic = headers_target.index('ubicacion') if 'ubicacion' in headers_target else -1
             idx_estado = headers_target.index('estado') if 'estado' in headers_target else -1
-            idx_prov = headers_target.index('serial_proveedor') if 'serial_proveedor' in headers_target else -1
+            idx_prov_target = headers_target.index('proveedor') if 'proveedor' in headers_target else -1
+            idx_emp_target = headers_target.index('empresa') if 'empresa' in headers_target else -1
+            idx_prov_serial = headers_target.index('serial_proveedor') if 'serial_proveedor' in headers_target else -1
             idx_obs = headers_target.index('observaciones') if 'observaciones' in headers_target else -1
             idx_fecha = headers_target.index('ultima_actualizacion') if 'ultima_actualizacion' in headers_target else -1
             idx_entrega = headers_target.index('fecha_entrega') if 'fecha_entrega' in headers_target else -1
@@ -103,29 +103,36 @@ def procesar_inventario():
             equipo_encontrado = None
             if serial in inventario_target:
                 equipo_encontrado = inventario_target[serial]
-            elif idx_prov > -1:
+            elif idx_prov_serial > -1:
                 for k, reg in inventario_target.items():
-                    if len(reg) > idx_prov and reg[idx_prov].strip().upper() == serial:
+                    if len(reg) > idx_prov_serial and reg[idx_prov_serial].strip().upper() == serial:
                         equipo_encontrado = reg
                         break
 
-            if equipo_encontrado:
-                max_idx = max(idx_resp, idx_area, idx_cargo, idx_ubic, idx_estado, idx_obs, idx_fecha, idx_entrega)
-                while len(equipo_encontrado) <= max_idx:
-                    equipo_encontrado.append('')
+            # --- NUEVA LÓGICA: CREAR EQUIPO SI NO EXISTE ---
+            if not equipo_encontrado:
+                equipo_encontrado = [''] * len(headers_target)
+                equipo_encontrado[0] = serial # Columna 1 siempre es el Serial principal
+                if idx_prov_target > -1: equipo_encontrado[idx_prov_target] = proveedor
+                if idx_emp_target > -1: equipo_encontrado[idx_emp_target] = empresa
+                
+                # Lo agregamos al diccionario del módulo correspondiente
+                inventario_target[serial] = equipo_encontrado
 
-                if resp and idx_resp > -1: equipo_encontrado[idx_resp] = resp
-                if area and idx_area > -1: equipo_encontrado[idx_area] = area
-                if cargo and idx_cargo > -1: equipo_encontrado[idx_cargo] = cargo
-                if ubicacion and idx_ubic > -1: equipo_encontrado[idx_ubic] = ubicacion
-                if estado and idx_estado > -1: equipo_encontrado[idx_estado] = estado
-                if obs and idx_obs > -1: equipo_encontrado[idx_obs] = obs
-                
-                # FECHA ENTREGA -> Asigna la fecha seleccionada en el formulario
-                if fecha_entrega and idx_entrega > -1: equipo_encontrado[idx_entrega] = fecha_entrega
-                
-                # ULTIMA ACTUALIZACION -> Asigna automáticamente la fecha de hoy
-                if idx_fecha > -1: equipo_encontrado[idx_fecha] = fecha_hoy
+            # --- ACTUALIZACIÓN DE CAMPOS ---
+            max_idx = max(idx_resp, idx_area, idx_cargo, idx_ubic, idx_estado, idx_obs, idx_fecha, idx_entrega, idx_prov_target, idx_emp_target)
+            while len(equipo_encontrado) <= max_idx:
+                equipo_encontrado.append('')
+
+            if resp and idx_resp > -1: equipo_encontrado[idx_resp] = resp
+            if area and idx_area > -1: equipo_encontrado[idx_area] = area
+            if cargo and idx_cargo > -1: equipo_encontrado[idx_cargo] = cargo
+            if ubicacion and idx_ubic > -1: equipo_encontrado[idx_ubic] = ubicacion
+            if estado and idx_estado > -1: equipo_encontrado[idx_estado] = estado
+            if obs and idx_obs > -1: equipo_encontrado[idx_obs] = obs
+            
+            if fecha_entrega and idx_entrega > -1: equipo_encontrado[idx_entrega] = fecha_entrega
+            if idx_fecha > -1: equipo_encontrado[idx_fecha] = fecha_hoy
 
     # 4. Guardar los archivos CSV actualizados
     for clave, ruta in rutas_csv.items():
