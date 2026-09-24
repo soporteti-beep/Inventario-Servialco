@@ -17,7 +17,7 @@
         <a href="../ARKY/arky.html">🏢 ARKY</a>
     </div>
 
-    <!-- NUEVA CABECERA OFICIAL: ETIQUETA ACTIVO FIJOS -->
+    <!-- CABECERA OFICIAL: ETIQUETA ACTIVO FIJOS -->
     <div class="doc-header">
         <div class="doc-logo">
             <img src="../logo-servialco.png" alt="Logo" onerror="this.style.display='none'">
@@ -37,7 +37,7 @@
 
     <!-- BUSCADOR Y FILTROS -->
     <div class="search-container">
-        <input type="text" id="buscador" class="buscador" onkeyup="filtrarTabla()" placeholder="Buscar equipo, serial o responsable...">
+        <input type="text" id="buscador" class="buscador" onkeyup="filtrarTabla()" placeholder="Buscar equipo, serial (SERIAL / SERIAL NUMBER) o responsable...">
         <select id="filtro-estado" class="filtro-estado" onchange="filtrarTabla()">
             <option value="">Todos los Estados</option>
             <option value="ASIGNADO">Asignados</option>
@@ -73,7 +73,7 @@
             <div class="modal-header">Registrar Evento (Servialco)</div>
             <div class="form-grid">
                 <div class="form-group"><label>Fecha*</label><input type="date" id="m-fecha" required></div>
-                <div class="form-group"><label>Serial*</label><input type="text" id="m-serial" required></div>
+                <div class="form-group"><label>Llave: SERIAL (Equipos) o SERIAL NUMBER (Monitores)*</label><input type="text" id="m-serial" placeholder="Ej: 5CG416681G o 7DU6H8EYC04192A" required></div>
                 <div class="form-group"><label>Evento*</label><select id="m-evento"><option value="CAMBIO_USUARIO">Cambio Responsable</option><option value="CREACION_NUEVO">Nuevo</option><option value="REPARACION">Soporte</option></select></div>
                 <div class="form-group"><label>Responsable</label><input type="text" id="m-resp"></div>
                 <div class="form-group"><label>Área</label><input type="text" id="m-area"></div>
@@ -103,7 +103,7 @@
         </div>
     </div>
 
-    <!-- SCRIPTS MODULARES CORREGIDOS -->
+    <!-- SCRIPTS MODULARES -->
     <script src="../js/api.js"></script>
     <script src="../js/ui.js"></script>
     <script>window.onload = () => { cargarModulo('servialco.csv', false); };</script>
