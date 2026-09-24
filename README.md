@@ -12,23 +12,24 @@ Un sistema web modular, ligero y descentralizado para la administración, rastre
   * 🏢 **AYS:** Gestión de equipos alquilados (Servialco / Construsalco) con filtrado por serial del proveedor.
   * 🏢 **UNICAT:** Control de activos alquilados a Unicat.
   * 🏢 **ARKY:** Control de activos alquilados a Arky.
-* **Visor Global de Consulta Unificada:** Una pantalla central (`index.html`) que integra automáticamente los datos de todos los módulos en tiempo real para facilitar auditorías y búsquedas sin riesgo de modificar la base de datos.
-* **Trazabilidad e Historial (`bitacora.csv`):** Cada evento (cambio de responsable, mantenimiento, reubicación o devolución) queda registrado cronológicamente con su fecha y responsable.
-* **Sincronización en Vivo:** Al registrar un cambio desde la interfaz web, el sistema actualiza en caliente los datos en memoria y dispara la automatización.
-* **GitOps & Automatización:** GitHub Actions (`actualizar.yml` + `actualizar.py`) procesa periódicamente el archivo de bitácora y actualiza la base de datos de cada módulo sin intervención manual.
+* **Visor Global de Consulta Unificada:** Una pantalla central (`index.html`) que integra automáticamente los datos de todos los módulos en tiempo real para facilitar auditorías y búsquedas mediante pestañas dinámicas sin riesgo de modificar la base de datos.
+* **Trazabilidad e Historial (`bitacora.csv`):** Cada evento (nuevo, cambio de responsable, mantenimiento, devolución o eliminación) queda registrado cronológicamente con su fecha y responsable.
+* **Sincronización en Vivo y Validaciones Estrictas:** Al registrar un cambio desde la interfaz web, el sistema valida que los seriales existan (o no se dupliquen) antes de conectarse a la API de GitHub, actualizando la página instantánea y silenciosamente sin alertas molestas.
+* **Backend Separado (Responsabilidad Única):** Lógica procesada en Python puro y dividida por tipo de evento (`Nuevo.py`, `actualizar.py`, `eliminar.py`, `Devolver.py`) para evitar corrupción de datos.
+* **Sincronización con la Nube:** Integración mediante API con Google Cloud y `gspread` para mantener una copia de respaldo automática de la bitácora en Google Sheets.
 
 ---
 
 ## 🛠️ Estructura del Repositorio
 
-El proyecto sigue una estructura limpia, separando la interfaz visual de la lógica de negocio y las bases de datos locales de cada proveedor:
+El proyecto sigue una estructura limpia, separando la interfaz visual (Frontend) de la lógica de negocio (Backend en Python) y las bases de datos locales (CSV) de cada proveedor:
 
 ```text
 Inventario-Servialco/
 │
 ├── .github/
 │   └── workflows/
-│       └── actualizar.yml          # Workflow de automatización CI/CD
+│       └── actualizar.yml         # Workflow automatizado que orquesta los scripts Python
 │
 ├── Servialco/
 │   ├── servialco.html             # Módulo visual Servialco (Propios)
@@ -47,13 +48,20 @@ Inventario-Servialco/
 │   └── arky.csv                   # Base de datos de equipos ARKY
 │
 ├── css/
-│   └── style.css                  # Hoja de estilos centralizada
+│   └── style.css                  # Hoja de estilos centralizada para toda la aplicación
 │
 ├── js/
-│   └── main.js                    # Motor JavaScript unificado y lógica GitHub API
+│   ├── api.js                     # Comunicación con GitHub API y validaciones de datos
+│   └── ui.js                      # Interfaz gráfica, dibujado de tablas y modales
 │
-├── index.html                     # Visor global de consulta unificada
-├── bitacora.csv                   # Registro maestro de trazabilidad e historial
-├── actualizar.py                  # Script Python que procesa la bitácora
-├── actualizar_sheet.py            # Script Python que procesa la bitácora y envía los datos a una Hoja de Calculo de Google Drive
+├── py.py/                         # Backend: Scripts de procesamiento por evento
+│   ├── Nuevo.py                   # Lógica para la creación de nuevos equipos
+│   ├── actualizar.py              # Lógica para actualización de responsables y estados
+│   ├── eliminar.py                # Lógica para retirar permanentemente un equipo
+│   ├── Devolver.py                # Lógica para retirar equipos y marcarlos como devueltos
+│   └── actualizar_sheet.py        # Conector API para respaldar la bitácora en Google Sheets
+│
+├── index.html                     # Visor global de consulta unificada (Front page)
+├── bitacora.csv                   # Registro maestro de trazabilidad e historial general
+├── logo-servialco.png             # Logotipo corporativo
 └── README.md                      # Documentación del proyecto
