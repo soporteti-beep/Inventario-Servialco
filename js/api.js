@@ -36,13 +36,14 @@ async function cargarModulo(csvUrl, esModuloYS) {
             if (responseBit.ok) {
                 const dataBit = await responseBit.text();
                 const filasBit = dataBit.split('\n').filter(row => row.trim().length > 0);
+                const fechaHoy = new Date().toISOString().split('T')[0];
                 
                 for (let i = 1; i < filasBit.length; i++) {
                     let sepBit = filasBit[i].includes(';') ? ';' : ',';
                     let colsBit = filasBit[i].split(sepBit);
                     if (colsBit.length < 11) continue;
 
-                    let bFecha = colsBit[0] ? colsBit[0].trim() : '';
+                    let bFechaEntrega = colsBit[0] ? colsBit[0].trim() : ''; // Fecha elegida manualmente por el usuario
                     let bSerial = colsBit[1] ? colsBit[1].trim().toUpperCase() : '';
                     let bResp = colsBit[3] ? colsBit[3].trim() : '';
                     let bArea = colsBit[4] ? colsBit[4].trim() : '';
@@ -63,7 +64,7 @@ async function cargarModulo(csvUrl, esModuloYS) {
                         let idxUbic = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'ubicacion');
                         let idxEstado = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'estado');
                         let idxObs = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'observaciones');
-                        let idxFecha = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'ultima_actualizacion');
+                        let idxFechaAct = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'ultima_actualizacion');
                         let idxEntrega = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'fecha_entrega');
 
                         if (idxResp > -1 && bResp) equipoEncontrado[idxResp] = bResp;
@@ -72,8 +73,12 @@ async function cargarModulo(csvUrl, esModuloYS) {
                         if (idxUbic > -1 && bUbic) equipoEncontrado[idxUbic] = bUbic;
                         if (idxEstado > -1 && bEstado) equipoEncontrado[idxEstado] = bEstado;
                         if (idxObs > -1 && bObs) equipoEncontrado[idxObs] = bObs;
-                        if (idxFecha > -1 && bFecha) equipoEncontrado[idxFecha] = bFecha;
-                        if (idxEntrega > -1 && bFecha) equipoEncontrado[idxEntrega] = bFecha;
+                        
+                        // FECHA ENTREGA -> Fecha elegida en el modal
+                        if (idxEntrega > -1 && bFechaEntrega) equipoEncontrado[idxEntrega] = bFechaEntrega;
+                        
+                        // ULTIMA ACTUALIZACION -> Fecha de HOY (ahora)
+                        if (idxFechaAct > -1) equipoEncontrado[idxFechaAct] = fechaHoy;
                     }
                 }
             }
@@ -95,10 +100,10 @@ async function cargarModulo(csvUrl, esModuloYS) {
 
 async function guardarEnGitHub(proveedorForzado, empresaForzada) {
     const serial = document.getElementById('m-serial').value.trim();
-    const fecha = document.getElementById('m-fecha').value;
+    const fechaEntrega = document.getElementById('m-fecha').value;
     const evento = document.getElementById('m-evento').value;
 
-    if(!fecha || !serial) { alert("Fecha y Serial son obligatorios."); return; }
+    if(!fechaEntrega || !serial) { alert("Fecha de Entrega y Serial son obligatorios."); return; }
 
     let token = localStorage.getItem('gh_token') || prompt('Ingresa tu GitHub Token (PAT):');
     if (!token) return;
@@ -107,7 +112,7 @@ async function guardarEnGitHub(proveedorForzado, empresaForzada) {
     document.querySelector('.modal-footer .btn-guardar').innerText = "Guardando... ⏳";
 
     const data = [
-        fecha, serial, evento, document.getElementById('m-resp').value, 
+        fechaEntrega, serial, evento, document.getElementById('m-resp').value, 
         document.getElementById('m-area').value, document.getElementById('m-cargo').value, 
         document.getElementById('m-ubic').value, document.getElementById('m-estado').value, 
         proveedorForzado, empresaForzada, document.getElementById('m-obs').value, ''
