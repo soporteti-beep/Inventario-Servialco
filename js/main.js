@@ -17,9 +17,9 @@ async function cargarModulo(csvUrl, esModuloYS) {
         
         let htmlCabecera = '';
         encabezadosGlobales.forEach((h) => {
-            if (!esModuloYS && h === 'serial_proveedor') return; 
+            if (!esModuloYS && h.trim() === 'serial_proveedor') return; 
             let nombreMostrar = h.toUpperCase().replace(/_/g, ' ');
-            if (esModuloYS && h === 'serial_proveedor') nombreMostrar = 'SERIAL PROVEEDOR';
+            if (esModuloYS && h.trim() === 'serial_proveedor') nombreMostrar = 'SERIAL PROVEEDOR';
             htmlCabecera += `<th>${nombreMostrar}</th>`;
         });
         document.querySelectorAll('.filas-cabecera').forEach(el => el.innerHTML = htmlCabecera);
@@ -43,14 +43,16 @@ async function cargarModulo(csvUrl, esModuloYS) {
                 for (let i = 1; i < filasBit.length; i++) {
                     let sepBit = filasBit[i].includes(';') ? ';' : ',';
                     let colsBit = filasBit[i].split(sepBit);
-                    if (colsBit.length < 8) continue;
+                    if (colsBit.length < 11) continue;
 
+                    let bFecha = colsBit[0] ? colsBit[0].trim() : '';
                     let bSerial = colsBit[1] ? colsBit[1].trim().toUpperCase() : '';
                     let bResp = colsBit[3] ? colsBit[3].trim() : '';
                     let bArea = colsBit[4] ? colsBit[4].trim() : '';
                     let bCargo = colsBit[5] ? colsBit[5].trim() : '';
                     let bUbic = colsBit[6] ? colsBit[6].trim() : '';
                     let bEstado = colsBit[7] ? colsBit[7].trim().toUpperCase() : '';
+                    let bObs = colsBit[10] ? colsBit[10].trim() : '';
 
                     let equipoEncontrado = null;
                     if (mapaInventario[bSerial]) {
@@ -58,17 +60,22 @@ async function cargarModulo(csvUrl, esModuloYS) {
                     }
 
                     if (equipoEncontrado) {
-                        let idxResp = encabezadosGlobales.indexOf('responsable');
-                        let idxArea = encabezadosGlobales.indexOf('area');
-                        let idxCargo = encabezadosGlobales.indexOf('cargo');
-                        let idxUbic = encabezadosGlobales.indexOf('ubicacion');
-                        let idxEstado = encabezadosGlobales.indexOf('estado');
+                        // Búsqueda dinámica y segura de los índices
+                        let idxResp = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'responsable');
+                        let idxArea = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'area');
+                        let idxCargo = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'cargo');
+                        let idxUbic = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'ubicacion');
+                        let idxEstado = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'estado');
+                        let idxObs = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'observaciones');
+                        let idxFecha = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'ultima_actualizacion');
 
                         if (idxResp > -1 && bResp) equipoEncontrado[idxResp] = bResp;
                         if (idxArea > -1 && bArea) equipoEncontrado[idxArea] = bArea;
                         if (idxCargo > -1 && bCargo) equipoEncontrado[idxCargo] = bCargo;
                         if (idxUbic > -1 && bUbic) equipoEncontrado[idxUbic] = bUbic;
                         if (idxEstado > -1 && bEstado) equipoEncontrado[idxEstado] = bEstado;
+                        if (idxObs > -1 && bObs) equipoEncontrado[idxObs] = bObs;
+                        if (idxFecha > -1 && bFecha) equipoEncontrado[idxFecha] = bFecha;
                     }
                 }
             }
@@ -79,7 +86,7 @@ async function cargarModulo(csvUrl, esModuloYS) {
         let datosModulo = Object.values(mapaInventario).map(cols => ({ data: cols }));
         pintarTablas(datosModulo, esModuloYS);
         
-        // Si la función filtrarTabla existe en el HTML (ej. con pestañas), llámala; si no, llama a la local
+        // Ejecutar filtros dinámicos
         if (typeof window.filtrarTabla === 'function') {
             window.filtrarTabla();
         } else {
@@ -93,11 +100,10 @@ function pintarTablas(datos, esModuloYS) {
     let htmlComps = '';
     let htmlMons = '';
 
-    let idxEstado = encabezadosGlobales.indexOf('estado');
-    // En la nueva estructura, el serial principal siempre es la columna 0
+    let idxEstado = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'estado');
+    let idxEmpresa = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'empresa');
+    let idxTipo = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'tipo');
     let idxSerial = 0; 
-    let idxEmpresa = encabezadosGlobales.indexOf('empresa');
-    let idxTipo = encabezadosGlobales.indexOf('tipo');
 
     datos.forEach(fila => {
         let celdas = fila.data;
@@ -111,7 +117,7 @@ function pintarTablas(datos, esModuloYS) {
         let filaHtml = `<tr class="fila-dato ${esMonitor ? 'fila-monitor' : 'fila-comp'}" data-estado="${estadoActual}" data-empresa="${empresaActual}">`;
         
         celdas.forEach((celda, index) => {
-            if (!esModuloYS && encabezadosGlobales[index] === 'serial_proveedor') return;
+            if (!esModuloYS && encabezadosGlobales[index].trim() === 'serial_proveedor') return;
 
             let contenido = celda || '';
             if (index === idxEstado) {
@@ -119,7 +125,6 @@ function pintarTablas(datos, esModuloYS) {
                 contenido = `<span class="badge ${claseBadge}">${contenido}</span>`;
             }
             
-            // CORRECCIÓN: Restablecer el enlace interactivo para el historial en la columna del Serial (índice 0)
             if (index === idxSerial && valSerial !== '') {
                 contenido = `<a href="javascript:void(0)" onclick="verHistorial('${valSerial}')" style="color: inherit; font-weight: bold; text-decoration: underline; cursor: pointer;">${valSerial}</a>`;
             }
