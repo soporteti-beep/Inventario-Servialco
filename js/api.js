@@ -213,9 +213,19 @@ async function guardarEnGitHub(proveedorForzado, empresaForzada) {
         });
 
         if (putRes.ok) {
+            // Notificación visual elegante en lugar de alert()
+            const toast = document.createElement('div');
+            toast.innerText = '¡Evento guardado exitosamente!';
+            toast.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background-color: #28a745; color: white; padding: 15px 25px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); font-family: sans-serif; font-weight: bold; z-index: 9999; opacity: 0; transition: opacity 0.5s ease;';
+            document.body.appendChild(toast);
+
+            setTimeout(() => { toast.style.opacity = '1'; }, 100);
+
+            setTimeout(() => {
+                cerrarModal(); 
+                location.reload();
+            }, 2000);
             
-            cerrarModal(); // Asegúrate de que esta función exista en ui.js
-            location.reload();
         } else {
             const errorDetails = await putRes.json();
             throw new Error(`Error de GitHub: ${errorDetails.message}`);
