@@ -213,7 +213,7 @@ async function guardarEnGitHub(proveedorForzado, empresaForzada) {
         });
 
         if (putRes.ok) {
-            alert('¡Evento y trazabilidad histórica registrados exitosamente! La página se recargará.');
+            
             cerrarModal(); // Asegúrate de que esta función exista en ui.js
             location.reload();
         } else {
