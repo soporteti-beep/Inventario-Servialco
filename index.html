@@ -24,7 +24,7 @@
         <a href="ARKY/arky.html">🏢 ARKY</a>
     </div>
 
-    <!-- NUEVA CABECERA OFICIAL: ETIQUETA ACTIVO FIJOS -->
+    <!-- CABECERA OFICIAL: ETIQUETA ACTIVO FIJOS -->
     <div class="doc-header">
         <div class="doc-logo">
             <img src="logo-servialco.png" alt="Logo" onerror="this.style.display='none'">
@@ -52,9 +52,10 @@
         </select>
     </div>
 
+    <!-- PESTAÑAS DE GRUPOS UNIFICADOS -->
     <div class="tabs" id="tabs-container"></div>
 
-    <!-- TABLAS DE DATOS CON CLASE table-container (Activa el Sticky Header) -->
+    <!-- TABLAS DE DATOS CON STICKY HEADER -->
     <div id="sec-computadores" style="display:none;">
         <h2 class="titulo-seccion">💻 Computadores (Portátiles y Escritorio)</h2>
         <div class="table-container">
@@ -75,7 +76,7 @@
         </div>
     </div>
 
-    <!-- MODAL DE CONSULTA DE HISTORIAL -->
+    <!-- MODAL DE HISTORIAL -->
     <div id="modalHistorial" class="modal">
         <div class="modal-content" style="width: 80%;">
             <div class="modal-header">Trazabilidad del Activo: <span id="historial-serial"></span></div>
@@ -100,11 +101,13 @@
         </div>
     </div>
 
+    <!-- SCRIPTS MODULARES -->
+    <script src="js/api.js"></script>
+    <script src="js/ui.js"></script>
     <script>
-        let encabezadosGlobales = [];
         let datosGlobales = [];
 
-        // Rutas a los CSV de todos los módulos
+        // Rutas relativas desde la raíz a los CSVs
         const ARCHIVOS_CSV = [
             'Servialco/servialco.csv',
             'AYS-Servialco/ays-servialco.csv',
@@ -121,11 +124,15 @@
                 let cabeceraEstablecida = false;
 
                 const timestamp = new Date().getTime();
-                const respuestas = await Promise.all(
+                
+                // 1. Cargar CSVs base
+                const respuestasCsv = await Promise.all(
                     ARCHIVOS_CSV.map(url => fetch(`${url}?${timestamp}`).then(r => r.ok ? r.text() : ''))
                 );
 
-                respuestas.forEach(data => {
+                let mapaInventario = {};
+
+                respuestasCsv.forEach(data => {
                     if (!data) return;
                     const filas = data.split('\n').filter(row => row.trim().length > 0);
                     if (filas.length === 0) return;
@@ -134,27 +141,68 @@
                     
                     if (!cabeceraEstablecida) {
                         encabezadosGlobales = filas[0].split(separador);
-                        let htmlCabecera = '';
-                        encabezadosGlobales.forEach((h, index) => {
-                            // Forzamos el nombre de la columna 0 a "SERIAL" por estética unificada
-                            let nombreMostrar = index === 0 ? 'SERIAL' : h.toUpperCase().replace(/_/g, ' ');
-                            htmlCabecera += `<th>${nombreMostrar}</th>`;
-                        });
-                        document.querySelectorAll('.filas-cabecera').forEach(el => el.innerHTML = htmlCabecera);
+                        renderizarEncabezados(false);
                         cabeceraEstablecida = true;
                     }
 
                     for (let i = 1; i < filas.length; i++) {
                         const columnas = filas[i].split(separador);
+                        const serialKey = columnas[0] ? columnas[0].trim().toUpperCase() : '';
                         const proveedor = columnas[5] ? columnas[5].trim() : 'PROPIO';
                         const empresa = columnas[6] ? columnas[6].trim() : 'S/E';
                         const etiquetaGrupo = `${proveedor} - ${empresa}`;
                         
-                        gruposUnicos.add(etiquetaGrupo);
-                        datosGlobales.push({ data: columnas, grupo: etiquetaGrupo });
+                        if (serialKey) {
+                            gruposUnicos.add(etiquetaGrupo);
+                            mapaInventario[serialKey] = { data: columnas, grupo: etiquetaGrupo };
+                        }
                     }
                 });
 
+                // 2. Sincronizar en vivo con la bitácora unificada
+                try {
+                    const responseBit = await fetch(`bitacora.csv?${timestamp}`);
+                    if (responseBit.ok) {
+                        const dataBit = await responseBit.text();
+                        const filasBit = dataBit.split('\n').filter(row => row.trim().length > 0);
+                        
+                        for (let i = 1; i < filasBit.length; i++) {
+                            let sepBit = filasBit[i].includes(';') ? ';' : ',';
+                            let colsBit = filasBit[i].split(sepBit);
+                            if (colsBit.length < 11) continue;
+
+                            let bFecha = colsBit[0] ? colsBit[0].trim() : '';
+                            let bSerial = colsBit[1] ? colsBit[1].trim().toUpperCase() : '';
+                            let bResp = colsBit[3] ? colsBit[3].trim() : '';
+                            let bArea = colsBit[4] ? colsBit[4].trim() : '';
+                            let bCargo = colsBit[5] ? colsBit[5].trim() : '';
+                            let bUbic = colsBit[6] ? colsBit[6].trim() : '';
+                            let bEstado = colsBit[7] ? colsBit[7].trim().toUpperCase() : '';
+                            let bObs = colsBit[10] ? colsBit[10].trim() : '';
+
+                            if (mapaInventario[bSerial]) {
+                                let equipoEncontrado = mapaInventario[bSerial].data;
+                                let idxResp = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'responsable');
+                                let idxArea = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'area');
+                                let idxCargo = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'cargo');
+                                let idxUbic = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'ubicacion');
+                                let idxEstado = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'estado');
+                                let idxObs = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'observaciones');
+                                let idxFecha = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'ultima_actualizacion');
+
+                                if (idxResp > -1 && bResp) equipoEncontrado[idxResp] = bResp;
+                                if (idxArea > -1 && bArea) equipoEncontrado[idxArea] = bArea;
+                                if (idxCargo > -1 && bCargo) equipoEncontrado[idxCargo] = bCargo;
+                                if (idxUbic > -1 && bUbic) equipoEncontrado[idxUbic] = bUbic;
+                                if (idxEstado > -1 && bEstado) equipoEncontrado[idxEstado] = bEstado;
+                                if (idxObs > -1 && bObs) equipoEncontrado[idxObs] = bObs;
+                                if (idxFecha > -1 && bFecha) equipoEncontrado[idxFecha] = bFecha;
+                            }
+                        }
+                    }
+                } catch (errBit) { console.warn("Bitácora no sincronizada en visor global:", errBit); }
+
+                // 3. Crear pestañas dinámicas
                 const tabsContainer = document.getElementById('tabs-container');
                 tabsContainer.innerHTML = `<button class="tab-btn active" onclick="filtrarPorPestana('TODOS', this)">VISIÓN GLOBAL</button>`;
                 
@@ -162,52 +210,10 @@
                     if (grupo !== " - ") tabsContainer.innerHTML += `<button class="tab-btn" onclick="filtrarPorPestana('${grupo}', this)">${grupo}</button>`;
                 });
 
-                pintarTablas(datosGlobales);
+                datosGlobales = Object.values(mapaInventario);
+                pintarTablas(datosGlobales, false);
                 filtrarTabla();
             } catch (e) { console.error("Error unificando los inventarios", e); }
-        }
-
-        function pintarTablas(datos) {
-            let htmlComps = '';
-            let htmlMons = '';
-
-            // Búsqueda dinámica de índices de columna por nombre
-            let idxEstado = encabezadosGlobales.findIndex(h => h.toLowerCase() === 'estado');
-            let idxTipo = encabezadosGlobales.findIndex(h => h.toLowerCase() === 'tipo');
-            let idxSerialOrig = 0; // En nuestros CSV estandarizados, la llave primaria SIEMPRE es la col 0
-
-            datos.forEach(fila => {
-                let celdas = fila.data;
-                let estadoActual = idxEstado > -1 && celdas[idxEstado] ? celdas[idxEstado].trim().toUpperCase() : '';
-                let valSerialOrig = celdas[idxSerialOrig] ? celdas[idxSerialOrig].trim() : '';
-                let tipoVal = idxTipo > -1 && celdas[idxTipo] ? celdas[idxTipo].trim().toUpperCase() : '';
-
-                let esMonitor = tipoVal.includes('MONITOR') || tipoVal.includes('PANTALLA');
-
-                let filaHtml = `<tr class="fila-dato ${esMonitor ? 'fila-monitor' : 'fila-comp'}" data-grupo="${fila.grupo}" data-estado="${estadoActual}">`;
-                
-                celdas.forEach((celda, index) => {
-                    let contenido = celda || '';
-                    if (index === idxEstado) {
-                        let claseBadge = contenido === 'ASIGNADO' ? 'bg-asignado' : (contenido === 'BODEGA' ? 'bg-bodega' : 'bg-default');
-                        contenido = `<span class="badge ${claseBadge}">${contenido}</span>`;
-                    }
-                    
-                    // Colocamos el enlace clickeable azul en la columna del Serial (Columna 0)
-                    if (index === idxSerialOrig && valSerialOrig !== '') {
-                        contenido = `<a href="javascript:void(0)" onclick="verHistorial('${valSerialOrig}')" style="color: inherit; font-weight: bold; text-decoration: underline; cursor: pointer;">${valSerialOrig}</a>`;
-                    }
-                    
-                    filaHtml += `<td>${contenido}</td>`;
-                });
-                filaHtml += '</tr>';
-
-                if (esMonitor) htmlMons += filaHtml;
-                else htmlComps += filaHtml;
-            });
-
-            document.getElementById('cuerpo-computadores').innerHTML = htmlComps;
-            document.getElementById('cuerpo-monitores').innerHTML = htmlMons;
         }
 
         function filtrarPorPestana(grupo, btn) {
@@ -218,10 +224,11 @@
             filtrarTabla();
         }
 
-        function filtrarTabla() {
+        // Sobreescribimos filtrarTabla para soportar las pestañas de proveedores unificados
+        window.filtrarTabla = function() {
             let filtroGlobal = document.getElementById("buscador").value.toUpperCase();
             let filtroEstado = document.getElementById("filtro-estado").value.toUpperCase();
-            let grupoActivo = document.querySelector('.tab-btn.active').innerText;
+            let grupoActivo = document.querySelector('.tab-btn.active') ? document.querySelector('.tab-btn.active').innerText : 'VISIÓN GLOBAL';
 
             let countC = 0, countM = 0;
 
@@ -241,43 +248,6 @@
 
             document.getElementById('sec-computadores').style.display = countC > 0 ? 'block' : 'none';
             document.getElementById('sec-monitores').style.display = countM > 0 ? 'block' : 'none';
-        }
-
-        function cerrarHistorial() { document.getElementById('modalHistorial').style.display = 'none'; }
-
-        async function verHistorial(serialPrincipal) {
-            try {
-                document.getElementById('historial-serial').innerText = serialPrincipal;
-                document.getElementById('cuerpo-historial').innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 20px;">Consultando bitácora... ⏳</td></tr>';
-                document.getElementById('modalHistorial').style.display = 'block';
-
-                const response = await fetch('bitacora.csv?' + new Date().getTime());
-                const data = await response.text();
-                const filas = data.split('\n').filter(row => row.trim().length > 0);
-                
-                let htmlHistorial = '';
-                let hayRegistros = false;
-                
-                for(let i=1; i<filas.length; i++) {
-                    let sep = filas[i].includes(';') ? ';' : ',';
-                    let cols = filas[i].split(sep);
-                    let colSerial = cols[1] ? cols[1].trim().toUpperCase() : '';
-                    
-                    if(colSerial === serialPrincipal.toUpperCase()) {
-                        hayRegistros = true;
-                        htmlHistorial += `<tr style="border-bottom: 1px solid #ddd;">
-                            <td style="padding: 10px;">${cols[0] || ''}</td>
-                            <td style="padding: 10px;"><strong>${cols[2] || ''}</strong></td>
-                            <td style="padding: 10px;">${cols[3] || ''}</td>
-                            <td style="padding: 10px;">${cols[6] || ''}</td>
-                            <td style="padding: 10px;"><span class="badge bg-default">${cols[7] || ''}</span></td>
-                            <td style="padding: 10px;">${cols[10] || ''}</td>
-                        </tr>`;
-                    }
-                }
-                if(!hayRegistros) htmlHistorial = '<tr><td colspan="6" style="text-align:center; padding: 20px;">No hay registros de trazabilidad.</td></tr>';
-                document.getElementById('cuerpo-historial').innerHTML = htmlHistorial;
-            } catch(e) { document.getElementById('cuerpo-historial').innerHTML = '<tr><td colspan="6" style="text-align:center; color:red; padding: 20px;">Error al cargar.</td></tr>'; }
         }
     </script>
 </body>
