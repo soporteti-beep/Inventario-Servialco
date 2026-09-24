@@ -104,6 +104,35 @@ async function guardarEnGitHub(proveedorForzado, empresaForzada) {
 
     if(!fechaEntrega || !serial) { alert("Fecha de Entrega y Serial son obligatorios."); return; }
 
+    // ==========================================
+    // VALIDACIONES ESTRICTAS DE INVENTARIO
+    // ==========================================
+    const eventoUpper = evento.toUpperCase().trim();
+    let equipoExiste = false;
+
+    // Verificar si el equipo ya está en la tabla (por Serial principal o de proveedor)
+    if (mapaInventarioGlobal[serial]) {
+        equipoExiste = true;
+    } else {
+        let idxProv = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'serial_proveedor');
+        if (idxProv > -1) {
+            equipoExiste = Object.values(mapaInventarioGlobal).some(cols => cols[idxProv] && cols[idxProv].trim().toUpperCase() === serial);
+        }
+    }
+
+    // REGLA 1: Evitar duplicar un equipo que ya existe
+    if (eventoUpper === 'NUEVO' && equipoExiste) {
+        alert(`❌ ERROR: El serial ${serial} YA EXISTE en este inventario.`);
+        return; // Corta la ejecución de inmediato
+    }
+
+    // REGLA 2: Evitar actualizar un equipo fantasma/inventado
+    if (eventoUpper !== 'NUEVO' && eventoUpper !== 'ASIGNACION_INICIAL' && !equipoExiste) {
+        alert(`❌ ERROR: El serial ${serial} NO EXISTE. Si es un equipo recién comprado, debes seleccionar el evento "Nuevo".`);
+        return; // Corta la ejecución de inmediato
+    }
+    // ==========================================
+
     let token = localStorage.getItem('gh_token') || prompt('Ingresa tu GitHub Token (PAT):');
     if (!token) return;
     localStorage.setItem('gh_token', token);
@@ -208,7 +237,7 @@ async function guardarEnGitHub(proveedorForzado, empresaForzada) {
                 message: `🚀 Evento ${proveedorForzado}: ${serial}`,
                 content: btoa(unescape(encodeURIComponent(contenidoNuevo))),
                 sha: fileData.sha,
-                branch: 'main' // Aseguramos que apunte a la rama principal
+                branch: 'main'
             })
         });
 
