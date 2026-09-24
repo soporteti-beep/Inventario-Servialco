@@ -25,44 +25,9 @@ jobs:
       - name: Ejecutar script de actualización
         run: python actualizar.py
 
-      # --- ENVÍO DE ARCHIVOS A GOOGLE DRIVE ---
-      
-      - name: Subir servialco.csv a Drive
-        uses: adityak74/google-drive-upload-action@main
-        with:
-          credentials: ${{ secrets.GDRIVE_CREDENTIALS }}
-          filename: "Servialco/servialco.csv"
-          folderId: "1nGLJHtIw5ISPiBO38aqwmIMN5TREnryC"
-          overwrite: "true"
-
-      - name: Subir ays-servialco.csv a Drive
-        uses: adityak74/google-drive-upload-action@main
-        with:
-          credentials: ${{ secrets.GDRIVE_CREDENTIALS }}
-          filename: "AYS-Servialco/ays-servialco.csv"
-          folderId: "1nGLJHtIw5ISPiBO38aqwmIMN5TREnryC"
-          overwrite: "true"
-
-      - name: Subir unicat.csv a Drive
-        uses: adityak74/google-drive-upload-action@main
-        with:
-          credentials: ${{ secrets.GDRIVE_CREDENTIALS }}
-          filename: "UNICAT/unicat.csv"
-          folderId: "1nGLJHtIw5ISPiBO38aqwmIMN5TREnryC"
-          overwrite: "true"
-
-      - name: Subir arky.csv a Drive
-        uses: adityak74/google-drive-upload-action@main
-        with:
-          credentials: ${{ secrets.GDRIVE_CREDENTIALS }}
-          filename: "ARKY/arky.csv"
-          folderId: "1nGLJHtIw5ISPiBO38aqwmIMN5TREnryC"
-          overwrite: "true"
-          
-      - name: Subir bitacora.csv a Drive
-        uses: adityak74/google-drive-upload-action@main
-        with:
-          credentials: ${{ secrets.GDRIVE_CREDENTIALS }}
-          filename: "bitacora.csv"
-          folderId: "1nGLJHtIw5ISPiBO38aqwmIMN5TREnryC"
-          overwrite: "true"
+      - name: Guardar los archivos actualizados en GitHub
+        run: |
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "actions@github.com"
+          git add Servialco/*.csv AYS-Servialco/*.csv UNICAT/*.csv ARKY/*.csv
+          git diff --quiet && git diff --staged --quiet || (git commit -m "🤖 Actualización automática de CSVs desde Bitácora" && git push)
