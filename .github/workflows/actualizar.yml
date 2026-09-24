@@ -22,7 +22,10 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Ejecutar script de actualización (Módulos de Inventario)
+      - name: Ejecutar script de creación (Nuevos equipos)
+        run: python Nuevo.py
+
+      - name: Ejecutar script de actualización (Equipos existentes)
         run: python actualizar.py
 
       - name: Guardar inventarios en GitHub (Para la Web)
