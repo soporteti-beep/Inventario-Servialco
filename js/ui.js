@@ -54,8 +54,8 @@ function pintarTablas(datos, esModuloYS) {
         else htmlComps += filaHtml;
     });
 
-    document.getElementById('cuerpo-computadores').innerHTML = htmlComps;
-    document.getElementById('cuerpo-monitores').innerHTML = htmlMons;
+    if(document.getElementById('cuerpo-computadores')) document.getElementById('cuerpo-computadores').innerHTML = htmlComps;
+    if(document.getElementById('cuerpo-monitores')) document.getElementById('cuerpo-monitores').innerHTML = htmlMons;
 }
 
 function filtrarTabla() {
@@ -82,12 +82,48 @@ function filtrarTabla() {
 }
 
 function abrirModal() { 
-    if(document.getElementById('miModal')) document.getElementById('miModal').style.display = 'block'; 
-    if(document.getElementById('m-fecha')) document.getElementById('m-fecha').value = new Date().toISOString().split('T')[0];
+    if(document.getElementById('miModal')) {
+        document.getElementById('miModal').style.display = 'block'; 
+        // Reiniciar valores del formulario al abrir
+        document.getElementById('m-serial').value = '';
+        document.getElementById('m-evento').value = 'ASIGNACION';
+        document.getElementById('m-resp').value = '';
+        document.getElementById('m-area').value = '';
+        document.getElementById('m-cargo').value = '';
+        document.getElementById('m-ubic').value = '';
+        document.getElementById('m-estado').value = 'ASIGNADO';
+        document.getElementById('m-obs').value = '';
+    }
+    if(document.getElementById('m-fecha')) {
+        document.getElementById('m-fecha').value = new Date().toISOString().split('T')[0];
+    }
 }
 
-function cerrarModal() { if(document.getElementById('miModal')) document.getElementById('miModal').style.display = 'none'; }
-function cerrarHistorial() { if(document.getElementById('modalHistorial')) document.getElementById('modalHistorial').style.display = 'none'; }
+function cerrarModal() { 
+    if(document.getElementById('miModal')) document.getElementById('miModal').style.display = 'none'; 
+}
+
+function cerrarHistorial() { 
+    if(document.getElementById('modalHistorial')) document.getElementById('modalHistorial').style.display = 'none'; 
+}
+
+// Vincula el botón de guardar dinámicamente según la página actual
+function prepararGuardado(proveedor, empresa) {
+    const btnGuardar = document.querySelector('.modal-footer .btn-guardar');
+    if(btnGuardar) {
+        // Removemos eventos previos para evitar ejecuciones dobles
+        const nuevoBtn = btnGuardar.cloneNode(true);
+        btnGuardar.parentNode.replaceChild(nuevoBtn, btnGuardar);
+        
+        nuevoBtn.addEventListener('click', () => {
+            if (typeof guardarEnGitHub === 'function') {
+                guardarEnGitHub(proveedor, empresa);
+            } else {
+                console.error("La función guardarEnGitHub no está definida en api.js");
+            }
+        });
+    }
+}
 
 async function verHistorial(serialBuscado) {
     try {
