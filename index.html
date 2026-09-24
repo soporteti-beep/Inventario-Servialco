@@ -224,7 +224,6 @@
             filtrarTabla();
         }
 
-        // Sobreescribimos filtrarTabla para soportar las pestañas de proveedores unificados
         window.filtrarTabla = function() {
             let filtroGlobal = document.getElementById("buscador").value.toUpperCase();
             let filtroEstado = document.getElementById("filtro-estado").value.toUpperCase();
@@ -248,6 +247,46 @@
 
             document.getElementById('sec-computadores').style.display = countC > 0 ? 'block' : 'none';
             document.getElementById('sec-monitores').style.display = countM > 0 ? 'block' : 'none';
+        }
+
+        // Sobreescribimos verHistorial para buscar la bitácora desde la raíz
+        window.verHistorial = async function(serialBuscado) {
+            try {
+                document.getElementById('historial-serial').innerText = serialBuscado;
+                document.getElementById('cuerpo-historial').innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 20px;">Consultando bitácora... ⏳</td></tr>';
+                document.getElementById('modalHistorial').style.display = 'block';
+
+                const response = await fetch('bitacora.csv?' + new Date().getTime());
+                const data = await response.text();
+                const filas = data.split('\n').filter(row => row.trim().length > 0);
+                
+                let htmlHistorial = '';
+                let hayRegistros = false;
+                
+                let sTarget1 = serialBuscado ? serialBuscado.toUpperCase() : '';
+
+                for(let i=1; i<filas.length; i++) {
+                    let sep = filas[i].includes(';') ? ';' : ',';
+                    let cols = filas[i].split(sep);
+                    let sBit = cols[1] ? cols[1].trim().toUpperCase() : '';
+                    
+                    if(sBit === sTarget1) {
+                        hayRegistros = true;
+                        htmlHistorial += `<tr style="border-bottom: 1px solid #ddd;">
+                            <td style="padding: 10px;">${cols[0] || ''}</td>
+                            <td style="padding: 10px;"><strong>${cols[2] || ''}</strong></td>
+                            <td style="padding: 10px;">${cols[3] || ''}</td>
+                            <td style="padding: 10px;">${cols[6] || ''}</td>
+                            <td style="padding: 10px;"><span class="badge bg-default">${cols[7] || ''}</span></td>
+                            <td style="padding: 10px;">${cols[10] || ''}</td>
+                        </tr>`;
+                    }
+                }
+                if(!hayRegistros) htmlHistorial = '<tr><td colspan="6" style="text-align:center; padding: 20px;">No hay registros en la bitácora para este serial.</td></tr>';
+                document.getElementById('cuerpo-historial').innerHTML = htmlHistorial;
+            } catch(e) { 
+                document.getElementById('cuerpo-historial').innerHTML = '<tr><td colspan="6" style="text-align:center; color:red; padding: 20px;">Error al cargar historial.</td></tr>'; 
+            }
         }
     </script>
 </body>
