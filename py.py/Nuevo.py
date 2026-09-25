@@ -22,9 +22,9 @@ def procesar_nuevos():
     modulos_data = {}
     modulos_headers = {}
     modulos_separadores = {}
+
     fecha_hoy = datetime.now().strftime('%Y-%m-%d')
 
-    # Cargar CSVs existentes
     for clave, ruta in rutas_csv.items():
         if os.path.exists(ruta):
             sep = detectar_separador(ruta)
@@ -59,17 +59,19 @@ def procesar_nuevos():
         cargo = fila[5].strip()
         ubicacion = fila[6].strip()
         estado = fila[7].strip().upper()
-        proveedor = fila[8].strip().upper()
-        empresa = fila[9].strip().upper()
+        proveedor = fila[8].strip().upper() if len(fila) > 8 else ''
+        empresa = fila[9].strip().upper() if len(fila) > 9 else ''
         obs = fila[10].strip() if len(fila) > 10 else ''
         
-        # Nuevos campos
         nombre_eq = fila[11].strip().upper() if len(fila) > 11 else ''
         tipo_eq = fila[12].strip().upper() if len(fila) > 12 else ''
         marca_eq = fila[13].strip().upper() if len(fila) > 13 else ''
         propiedad_eq = fila[14].strip().upper() if len(fila) > 14 else ''
 
-        if not serial or evento != 'NUEVO':
+        if not serial:
+            continue
+
+        if evento not in ['NUEVO', 'ASIGNACION_INICIAL']:
             continue
 
         clave_modulo = None
@@ -86,7 +88,6 @@ def procesar_nuevos():
             inventario_target = modulos_data[clave_modulo]
             headers_target = [h.lower() for h in modulos_headers[clave_modulo]]
 
-            # Mapeo de índices tolerante
             idx_resp = headers_target.index('responsable') if 'responsable' in headers_target else -1
             idx_area = headers_target.index('area') if 'area' in headers_target else -1
             idx_cargo = headers_target.index('cargo') if 'cargo' in headers_target else -1
@@ -96,36 +97,42 @@ def procesar_nuevos():
             idx_fecha = headers_target.index('ultima_actualizacion') if 'ultima_actualizacion' in headers_target else -1
             idx_entrega = headers_target.index('fecha_entrega') if 'fecha_entrega' in headers_target else -1
             
-            idx_prov = next((i for i, h in enumerate(headers_target) if 'proveedor' in h), -1)
-            idx_emp = headers_target.index('empresa') if 'empresa' in headers_target else -1
+            idx_prov_target = next((i for i, h in enumerate(headers_target) if 'proveedor' in h), -1)
+            idx_emp_target = headers_target.index('empresa') if 'empresa' in headers_target else -1
             idx_nombre = next((i for i, h in enumerate(headers_target) if h in ['nombre equipo', 'nombre_equipo']), -1)
             idx_tipo = headers_target.index('tipo') if 'tipo' in headers_target else -1
             idx_marca = headers_target.index('marca') if 'marca' in headers_target else -1
             idx_prop = headers_target.index('propiedad') if 'propiedad' in headers_target else -1
 
-            # Crear equipo completamente nuevo
-            nuevo_equipo = [''] * len(headers_target)
-            nuevo_equipo[0] = serial
-            
-            if idx_prov > -1: nuevo_equipo[idx_prov] = proveedor
-            if idx_emp > -1: nuevo_equipo[idx_emp] = empresa
-            if idx_resp > -1: nuevo_equipo[idx_resp] = resp
-            if idx_area > -1: nuevo_equipo[idx_area] = area
-            if idx_cargo > -1: nuevo_equipo[idx_cargo] = cargo
-            if idx_ubic > -1: nuevo_equipo[idx_ubic] = ubicacion
-            if idx_estado > -1: nuevo_equipo[idx_estado] = estado
-            if idx_obs > -1: nuevo_equipo[idx_obs] = obs
-            if idx_entrega > -1: nuevo_equipo[idx_entrega] = fecha_entrega
-            if idx_fecha > -1: nuevo_equipo[idx_fecha] = fecha_hoy
-            
-            if idx_nombre > -1: nuevo_equipo[idx_nombre] = nombre_eq
-            if idx_tipo > -1: nuevo_equipo[idx_tipo] = tipo_eq
-            if idx_marca > -1: nuevo_equipo[idx_marca] = marca_eq
-            if idx_prop > -1: nuevo_equipo[idx_prop] = propiedad_eq
+            equipo_encontrado = None
+            if serial in inventario_target:
+                equipo_encontrado = inventario_target[serial]
 
-            inventario_target[serial] = nuevo_equipo
+            if not equipo_encontrado:
+                equipo_encontrado = [''] * len(headers_target)
+                equipo_encontrado[0] = serial
+                if idx_prov_target > -1: equipo_encontrado[idx_prov_target] = proveedor
+                if idx_emp_target > -1: equipo_encontrado[idx_emp_target] = empresa
+                inventario_target[serial] = equipo_encontrado
 
-    # Guardar cambios
+            max_idx = max(idx_resp, idx_area, idx_cargo, idx_ubic, idx_estado, idx_obs, idx_fecha, idx_entrega, idx_prov_target, idx_emp_target, idx_nombre, idx_tipo, idx_marca, idx_prop)
+            while len(equipo_encontrado) <= max_idx:
+                equipo_encontrado.append('')
+
+            if resp and idx_resp > -1: equipo_encontrado[idx_resp] = resp
+            if area and idx_area > -1: equipo_encontrado[idx_area] = area
+            if cargo and idx_cargo > -1: equipo_encontrado[idx_cargo] = cargo
+            if ubicacion and idx_ubic > -1: equipo_encontrado[idx_ubic] = ubicacion
+            if estado and idx_estado > -1: equipo_encontrado[idx_estado] = estado
+            if obs and idx_obs > -1: equipo_encontrado[idx_obs] = obs
+            if fecha_entrega and idx_entrega > -1: equipo_encontrado[idx_entrega] = fecha_entrega
+            if idx_fecha > -1: equipo_encontrado[idx_fecha] = fecha_hoy
+            
+            if nombre_eq and idx_nombre > -1: equipo_encontrado[idx_nombre] = nombre_eq
+            if tipo_eq and idx_tipo > -1: equipo_encontrado[idx_tipo] = tipo_eq
+            if marca_eq and idx_marca > -1: equipo_encontrado[idx_marca] = marca_eq
+            if propiedad_eq and idx_prop > -1: equipo_encontrado[idx_prop] = propiedad_eq
+
     for clave, ruta in rutas_csv.items():
         if clave in modulos_data and clave in modulos_headers:
             sep = modulos_separadores.get(clave, ',')
