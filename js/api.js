@@ -250,7 +250,9 @@ async function guardarEnGitHub(proveedorForzado, empresaForzada) {
                 if (!equipo) {
                     equipo = new Array(encabezadosGlobales.length).fill('');
                     equipo[0] = serial; // Columna 1 siempre es el serial
-                    let idxProv = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'proveedor');
+                    
+                    // Búsqueda tolerante de columnas (soporta "PROVEEDOR" o "SERIAL_PROVEEDOR")
+                    let idxProv = encabezadosGlobales.findIndex(h => h.trim().toLowerCase().includes('proveedor'));
                     let idxEmp = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'empresa');
                     let idxTipo = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'tipo');
                     
@@ -292,6 +294,10 @@ async function guardarEnGitHub(proveedorForzado, empresaForzada) {
             // Redibujamos la tabla instantáneamente
             let datosModulo = Object.values(mapaInventarioGlobal).map(cols => ({ data: cols }));
             let esModuloYS = encabezadosGlobales.some(h => h.trim().toLowerCase() === 'serial_proveedor');
+            
+            // Forzamos el redibujado vaciando el buscador
+            const buscador = document.getElementById("buscador");
+            if(buscador) buscador.value = "";
             
             pintarTablas(datosModulo, esModuloYS);
             if (typeof window.filtrarTabla === 'function') {
