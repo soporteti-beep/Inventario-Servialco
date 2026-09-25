@@ -11,7 +11,6 @@ async function cargarModulo(csvUrl, esModuloYS) {
     try {
         const timestamp = new Date().getTime();
         
-        // 1. Cargar el CSV base del módulo
         const responseCsv = await fetch(`${csvUrl}?${timestamp}`); 
         const dataCsv = await responseCsv.text();
         const filasCsv = dataCsv.split('\n').filter(row => row.trim().length > 0);
@@ -31,7 +30,6 @@ async function cargarModulo(csvUrl, esModuloYS) {
             }
         }
 
-        // 2. Sincronización en vivo con bitacora.csv
         try {
             const responseBit = await fetch(`../bitacora.csv?${timestamp}`);
             if (responseBit.ok) {
@@ -102,9 +100,6 @@ async function guardarEnGitHub(proveedorForzado, empresaForzada) {
 
     if(!fechaEntrega || !serial) { alert("Fecha de Entrega y Serial son obligatorios."); return; }
 
-    // ==========================================
-    // VALIDACIONES ESTRICTAS DE INVENTARIO
-    // ==========================================
     const eventoUpper = evento.toUpperCase().trim();
     let equipoExiste = false;
 
@@ -126,7 +121,6 @@ async function guardarEnGitHub(proveedorForzado, empresaForzada) {
         alert(`❌ ERROR: El serial ${serial} NO EXISTE. Si es un equipo recién comprado, debes seleccionar el evento "Nuevo".`);
         return; 
     }
-    // ==========================================
 
     let token = localStorage.getItem('gh_token') || prompt('Ingresa tu GitHub Token (PAT):');
     if (!token) return;
@@ -143,84 +137,30 @@ async function guardarEnGitHub(proveedorForzado, empresaForzada) {
         const contenidoActual = decodeURIComponent(escape(atob(fileData.content)));
         const filasBit = contenidoActual.split('\n').filter(row => row.trim().length > 0);
 
-        // IMPORTANTE: Detectar qué separador usa tu bitacora.csv (; o ,)
         let sep = ',';
         if (filasBit.length > 0 && filasBit[0].includes(';')) {
             sep = ';';
         }
 
-        // Construimos la data usando el separador dinámico para no dañar el CSV
         const dataNuevoEvento = [
             fechaEntrega, 
             serial, 
-            evento, 
-            document.getElementById('m-resp').value, 
-            document.getElementById('m-area').value, 
-            document.getElementById('m-cargo').value, 
-            document.getElementById('m-ubic').value, 
-            document.getElementById('m-estado').value, 
+            eventoUpper, // Forzamos mayúscula siempre
+            document.getElementById('m-resp') ? document.getElementById('m-resp').value : '', 
+            document.getElementById('m-area') ? document.getElementById('m-area').value : '', 
+            document.getElementById('m-cargo') ? document.getElementById('m-cargo').value : '', 
+            document.getElementById('m-ubic') ? document.getElementById('m-ubic').value : '', 
+            document.getElementById('m-estado') ? document.getElementById('m-estado').value : 'ASIGNADO', 
             proveedorForzado, 
             empresaForzada, 
-            document.getElementById('m-obs').value,
-            // Capturamos los 4 campos nuevos para la bitácora
+            document.getElementById('m-obs') ? document.getElementById('m-obs').value : '',
             document.getElementById('m-nombre') ? document.getElementById('m-nombre').value : '',
             document.getElementById('m-tipo') ? document.getElementById('m-tipo').value : '',
             document.getElementById('m-marca') ? document.getElementById('m-marca').value : '',
             document.getElementById('m-propiedad') ? document.getElementById('m-propiedad').value : ''
         ].map(val => val.replace(new RegExp(sep, 'g'), '').replace(/\n/g, ' ')); 
 
-        let existeEnBitacora = false;
-        for(let i = 1; i < filasBit.length; i++) {
-            let sepLinea = filasBit[i].includes(';') ? ';' : ',';
-            let cols = filasBit[i].split(sepLinea);
-            let sBit = cols[1] ? cols[1].trim().toUpperCase() : '';
-            if(sBit === serial) {
-                existeEnBitacora = true;
-                break;
-            }
-        }
-
-        let lineasNuevas = "";
-
-        if(!existeEnBitacora) {
-            let equipoPrevio = mapaInventarioGlobal[serial];
-            let idxProv = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'serial_proveedor');
-            
-            if(!equipoPrevio && idxProv > -1) {
-                equipoPrevio = Object.values(mapaInventarioGlobal).find(cols => cols[idxProv] && cols[idxProv].trim().toUpperCase() === serial);
-            }
-
-            if(equipoPrevio) {
-                let idxResp = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'responsable');
-                let idxArea = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'area');
-                let idxCargo = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'cargo');
-                let idxUbic = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'ubicacion');
-                let idxEstado = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'estado');
-                let idxEntrega = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'fecha_entrega');
-                let idxObs = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'observaciones');
-
-                let prevResp = idxResp > -1 && equipoPrevio[idxResp] ? equipoPrevio[idxResp].trim() : '';
-                let prevArea = idxArea > -1 && equipoPrevio[idxArea] ? equipoPrevio[idxArea].trim() : '';
-                let prevCargo = idxCargo > -1 && equipoPrevio[idxCargo] ? equipoPrevio[idxCargo].trim() : '';
-                let prevUbic = idxUbic > -1 && equipoPrevio[idxUbic] ? equipoPrevio[idxUbic].trim() : '';
-                let prevEstado = idxEstado > -1 && equipoPrevio[idxEstado] ? equipoPrevio[idxEstado].trim() : '';
-                let prevFecha = idxEntrega > -1 && equipoPrevio[idxEntrega] && equipoPrevio[idxEntrega].trim() !== '' 
-                    ? equipoPrevio[idxEntrega].trim() 
-                    : '2025-06-13'; 
-                let prevObs = idxObs > -1 && equipoPrevio[idxObs] && equipoPrevio[idxObs].trim() !== '' 
-                    ? equipoPrevio[idxObs].trim() 
-                    : 'Asignación inicial previa a la actualización web';
-
-                const dataInicial = [
-                    prevFecha, serial, 'ASIGNACION_INICIAL', prevResp, prevArea, prevCargo, prevUbic, prevEstado, proveedorForzado, empresaForzada, prevObs,
-                    '', '', '', ''
-                ].map(val => val.replace(new RegExp(sep, 'g'), '').replace(/\n/g, ' '));
-
-                lineasNuevas += "\n" + dataInicial.join(sep);
-            }
-        }
-
-        lineasNuevas += "\n" + dataNuevoEvento.join(sep);
+        let lineasNuevas = "\n" + dataNuevoEvento.join(sep);
         const contenidoNuevo = contenidoActual + lineasNuevas;
 
         const putRes = await fetch(urlAPI, {
@@ -240,9 +180,7 @@ async function guardarEnGitHub(proveedorForzado, empresaForzada) {
         if (putRes.ok) {
             cerrarModal(); 
 
-            // ==========================================
-            // ACTUALIZACIÓN OPTIMISTA (Redibujo Mágico)
-            // ==========================================
+            // ACTUALIZACIÓN OPTIMISTA
             if (eventoUpper === 'ELIMINAR' || eventoUpper === 'DEVOLVER') {
                 delete mapaInventarioGlobal[serial];
             } else {
@@ -279,12 +217,12 @@ async function guardarEnGitHub(proveedorForzado, empresaForzada) {
                 let idxFechaAct = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'ultima_actualizacion');
                 let idxEntrega = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'fecha_entrega');
 
-                let mResp = document.getElementById('m-resp').value.toUpperCase();
-                let mArea = document.getElementById('m-area').value.toUpperCase();
-                let mCargo = document.getElementById('m-cargo').value.toUpperCase();
-                let mUbic = document.getElementById('m-ubic').value.toUpperCase();
-                let mEstado = document.getElementById('m-estado').value.toUpperCase();
-                let mObs = document.getElementById('m-obs').value.toUpperCase();
+                let mResp = document.getElementById('m-resp') ? document.getElementById('m-resp').value.toUpperCase() : '';
+                let mArea = document.getElementById('m-area') ? document.getElementById('m-area').value.toUpperCase() : '';
+                let mCargo = document.getElementById('m-cargo') ? document.getElementById('m-cargo').value.toUpperCase() : '';
+                let mUbic = document.getElementById('m-ubic') ? document.getElementById('m-ubic').value.toUpperCase() : '';
+                let mEstado = document.getElementById('m-estado') ? document.getElementById('m-estado').value.toUpperCase() : '';
+                let mObs = document.getElementById('m-obs') ? document.getElementById('m-obs').value.toUpperCase() : '';
                 let fechaHoy = new Date().toISOString().split('T')[0];
 
                 if (idxResp > -1 && mResp) equipo[idxResp] = mResp;
