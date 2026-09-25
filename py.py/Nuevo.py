@@ -62,6 +62,12 @@ def procesar_nuevos():
         proveedor = fila[8].strip().upper() if len(fila) > 8 else ''
         empresa = fila[9].strip().upper() if len(fila) > 9 else ''
         obs = fila[10].strip() if len(fila) > 10 else ''
+        
+        # Rescatamos los 4 nuevos campos si existen en la bitácora
+        nombre_eq = fila[11].strip().upper() if len(fila) > 11 else ''
+        tipo_eq = fila[12].strip().upper() if len(fila) > 12 else ''
+        marca_eq = fila[13].strip().upper() if len(fila) > 13 else ''
+        propiedad_eq = fila[14].strip().upper() if len(fila) > 14 else ''
 
         if not serial:
             continue
@@ -94,6 +100,12 @@ def procesar_nuevos():
             idx_obs = headers_target.index('observaciones') if 'observaciones' in headers_target else -1
             idx_fecha = headers_target.index('ultima_actualizacion') if 'ultima_actualizacion' in headers_target else -1
             idx_entrega = headers_target.index('fecha_entrega') if 'fecha_entrega' in headers_target else -1
+            
+            # Buscamos en qué columna del CSV van los 4 campos nuevos
+            idx_nombre = next((i for i, h in enumerate(headers_target) if h in ['nombre equipo', 'nombre_equipo']), -1)
+            idx_tipo = headers_target.index('tipo') if 'tipo' in headers_target else -1
+            idx_marca = headers_target.index('marca') if 'marca' in headers_target else -1
+            idx_prop = headers_target.index('propiedad') if 'propiedad' in headers_target else -1
 
             equipo_encontrado = None
             if serial in inventario_target:
@@ -107,7 +119,7 @@ def procesar_nuevos():
                 if idx_emp_target > -1: equipo_encontrado[idx_emp_target] = empresa
                 inventario_target[serial] = equipo_encontrado
 
-            max_idx = max(idx_resp, idx_area, idx_cargo, idx_ubic, idx_estado, idx_obs, idx_fecha, idx_entrega, idx_prov_target, idx_emp_target)
+            max_idx = max(idx_resp, idx_area, idx_cargo, idx_ubic, idx_estado, idx_obs, idx_fecha, idx_entrega, idx_prov_target, idx_emp_target, idx_nombre, idx_tipo, idx_marca, idx_prop)
             while len(equipo_encontrado) <= max_idx:
                 equipo_encontrado.append('')
 
@@ -119,6 +131,12 @@ def procesar_nuevos():
             if obs and idx_obs > -1: equipo_encontrado[idx_obs] = obs
             if fecha_entrega and idx_entrega > -1: equipo_encontrado[idx_entrega] = fecha_entrega
             if idx_fecha > -1: equipo_encontrado[idx_fecha] = fecha_hoy
+            
+            # Asignamos los 4 nuevos valores a sus respectivas celdas
+            if nombre_eq and idx_nombre > -1: equipo_encontrado[idx_nombre] = nombre_eq
+            if tipo_eq and idx_tipo > -1: equipo_encontrado[idx_tipo] = tipo_eq
+            if marca_eq and idx_marca > -1: equipo_encontrado[idx_marca] = marca_eq
+            if propiedad_eq and idx_prop > -1: equipo_encontrado[idx_prop] = propiedad_eq
 
     for clave, ruta in rutas_csv.items():
         if clave in modulos_data and clave in modulos_headers:
