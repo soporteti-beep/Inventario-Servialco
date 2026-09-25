@@ -77,11 +77,17 @@
                 <div class="form-group"><label>Evento*</label>
                     <select id="m-evento">
                         <option value="Cambio Responsable">Cambio Responsable</option>
-                        <!-- ASEGURARSE QUE EL VALUE SEA "NUEVO" Y NO "Nuevo" -->
                         <option value="NUEVO">Nuevo</option> 
                         <option value="Eliminar">Eliminar</option>
                     </select>
                 </div>
+                
+                <!-- CAMPOS EXCLUSIVOS PARA EQUIPOS NUEVOS (Ocultos por defecto) -->
+                <div class="form-group campo-nuevo" style="display:none;"><label>Nombre Equipo</label><input type="text" id="m-nombre" placeholder="Ej: SERVIALCOPC"></div>
+                <div class="form-group campo-nuevo" style="display:none;"><label>Tipo</label><select id="m-tipo"><option value="PORTATIL">PORTATIL</option><option value="ESCRITORIO">ESCRITORIO</option><option value="MONITOR">MONITOR</option></select></div>
+                <div class="form-group campo-nuevo" style="display:none;"><label>Marca</label><input type="text" id="m-marca" placeholder="Ej: HP, LENOVO"></div>
+                <div class="form-group campo-nuevo" style="display:none;"><label>Propiedad</label><select id="m-propiedad"><option value="PROPIO">PROPIO</option></select></div>
+
                 <div class="form-group"><label>Responsable</label><input type="text" id="m-resp"></div>
                 <div class="form-group"><label>Área</label><input type="text" id="m-area"></div>
                 <div class="form-group"><label>Cargo</label><input type="text" id="m-cargo"></div>
