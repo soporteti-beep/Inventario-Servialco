@@ -145,7 +145,12 @@ async function guardarEnGitHub(proveedorForzado, empresaForzada) {
         document.getElementById('m-estado').value, 
         proveedorForzado, 
         empresaForzada, 
-        document.getElementById('m-obs').value
+        document.getElementById('m-obs').value,
+        // Capturamos los 4 campos nuevos para la bitácora
+        document.getElementById('m-nombre') ? document.getElementById('m-nombre').value : '',
+        document.getElementById('m-tipo') ? document.getElementById('m-tipo').value : '',
+        document.getElementById('m-marca') ? document.getElementById('m-marca').value : '',
+        document.getElementById('m-propiedad') ? document.getElementById('m-propiedad').value : ''
     ].map(val => val.replace(/,/g, '')); 
 
     try {
@@ -210,7 +215,9 @@ async function guardarEnGitHub(proveedorForzado, empresaForzada) {
                     prevEstado, 
                     proveedorForzado, 
                     empresaForzada, 
-                    prevObs
+                    prevObs,
+                    // Dejamos en blanco los nuevos campos para el registro inicial falso
+                    '', '', '', ''
                 ].map(val => val.replace(/,/g, ''));
 
                 lineasNuevas += "\n" + dataInicial.join(',');
@@ -251,14 +258,21 @@ async function guardarEnGitHub(proveedorForzado, empresaForzada) {
                     equipo = new Array(encabezadosGlobales.length).fill('');
                     equipo[0] = serial; // Columna 1 siempre es el serial
                     
-                    // Búsqueda tolerante de columnas (soporta "PROVEEDOR" o "SERIAL_PROVEEDOR")
                     let idxProv = encabezadosGlobales.findIndex(h => h.trim().toLowerCase().includes('proveedor'));
                     let idxEmp = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'empresa');
+                    let idxNombre = encabezadosGlobales.findIndex(h => h.trim().toLowerCase().replace('_', ' ') === 'nombre equipo');
                     let idxTipo = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'tipo');
+                    let idxMarca = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'marca');
+                    let idxProp = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'propiedad');
                     
                     if (idxProv > -1) equipo[idxProv] = proveedorForzado;
                     if (idxEmp > -1) equipo[idxEmp] = empresaForzada;
-                    if (idxTipo > -1) equipo[idxTipo] = 'COMPUTADOR'; // Valor genérico
+                    
+                    // Inyectamos los nuevos valores al instante en la pantalla
+                    if (idxNombre > -1) equipo[idxNombre] = document.getElementById('m-nombre') ? document.getElementById('m-nombre').value.toUpperCase() : '';
+                    if (idxTipo > -1) equipo[idxTipo] = document.getElementById('m-tipo') ? document.getElementById('m-tipo').value.toUpperCase() : 'PORTATIL';
+                    if (idxMarca > -1) equipo[idxMarca] = document.getElementById('m-marca') ? document.getElementById('m-marca').value.toUpperCase() : '';
+                    if (idxProp > -1) equipo[idxProp] = document.getElementById('m-propiedad') ? document.getElementById('m-propiedad').value.toUpperCase() : '';
                     
                     mapaInventarioGlobal[serial] = equipo;
                 }
