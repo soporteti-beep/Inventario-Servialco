@@ -134,25 +134,6 @@ async function guardarEnGitHub(proveedorForzado, empresaForzada) {
 
     document.querySelector('.modal-footer .btn-guardar').innerText = "Guardando... ⏳";
 
-    const dataNuevoEvento = [
-        fechaEntrega, 
-        serial, 
-        evento, 
-        document.getElementById('m-resp').value, 
-        document.getElementById('m-area').value, 
-        document.getElementById('m-cargo').value, 
-        document.getElementById('m-ubic').value, 
-        document.getElementById('m-estado').value, 
-        proveedorForzado, 
-        empresaForzada, 
-        document.getElementById('m-obs').value,
-        // Capturamos los 4 campos nuevos para la bitácora
-        document.getElementById('m-nombre') ? document.getElementById('m-nombre').value : '',
-        document.getElementById('m-tipo') ? document.getElementById('m-tipo').value : '',
-        document.getElementById('m-marca') ? document.getElementById('m-marca').value : '',
-        document.getElementById('m-propiedad') ? document.getElementById('m-propiedad').value : ''
-    ].map(val => val.replace(/,/g, '')); 
-
     try {
         const urlAPI = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/bitacora.csv`;
         const getRes = await fetch(urlAPI, { headers: { 'Authorization': `token ${token}` }});
@@ -162,10 +143,36 @@ async function guardarEnGitHub(proveedorForzado, empresaForzada) {
         const contenidoActual = decodeURIComponent(escape(atob(fileData.content)));
         const filasBit = contenidoActual.split('\n').filter(row => row.trim().length > 0);
 
+        // IMPORTANTE: Detectar qué separador usa tu bitacora.csv (; o ,)
+        let sep = ',';
+        if (filasBit.length > 0 && filasBit[0].includes(';')) {
+            sep = ';';
+        }
+
+        // Construimos la data usando el separador dinámico para no dañar el CSV
+        const dataNuevoEvento = [
+            fechaEntrega, 
+            serial, 
+            evento, 
+            document.getElementById('m-resp').value, 
+            document.getElementById('m-area').value, 
+            document.getElementById('m-cargo').value, 
+            document.getElementById('m-ubic').value, 
+            document.getElementById('m-estado').value, 
+            proveedorForzado, 
+            empresaForzada, 
+            document.getElementById('m-obs').value,
+            // Capturamos los 4 campos nuevos para la bitácora
+            document.getElementById('m-nombre') ? document.getElementById('m-nombre').value : '',
+            document.getElementById('m-tipo') ? document.getElementById('m-tipo').value : '',
+            document.getElementById('m-marca') ? document.getElementById('m-marca').value : '',
+            document.getElementById('m-propiedad') ? document.getElementById('m-propiedad').value : ''
+        ].map(val => val.replace(new RegExp(sep, 'g'), '').replace(/\n/g, ' ')); 
+
         let existeEnBitacora = false;
         for(let i = 1; i < filasBit.length; i++) {
-            let sep = filasBit[i].includes(';') ? ';' : ',';
-            let cols = filasBit[i].split(sep);
+            let sepLinea = filasBit[i].includes(';') ? ';' : ',';
+            let cols = filasBit[i].split(sepLinea);
             let sBit = cols[1] ? cols[1].trim().toUpperCase() : '';
             if(sBit === serial) {
                 existeEnBitacora = true;
@@ -205,26 +212,15 @@ async function guardarEnGitHub(proveedorForzado, empresaForzada) {
                     : 'Asignación inicial previa a la actualización web';
 
                 const dataInicial = [
-                    prevFecha, 
-                    serial, 
-                    'ASIGNACION_INICIAL', 
-                    prevResp, 
-                    prevArea, 
-                    prevCargo, 
-                    prevUbic, 
-                    prevEstado, 
-                    proveedorForzado, 
-                    empresaForzada, 
-                    prevObs,
-                    // Dejamos en blanco los nuevos campos para el registro inicial falso
+                    prevFecha, serial, 'ASIGNACION_INICIAL', prevResp, prevArea, prevCargo, prevUbic, prevEstado, proveedorForzado, empresaForzada, prevObs,
                     '', '', '', ''
-                ].map(val => val.replace(/,/g, ''));
+                ].map(val => val.replace(new RegExp(sep, 'g'), '').replace(/\n/g, ' '));
 
-                lineasNuevas += "\n" + dataInicial.join(',');
+                lineasNuevas += "\n" + dataInicial.join(sep);
             }
         }
 
-        lineasNuevas += "\n" + dataNuevoEvento.join(',');
+        lineasNuevas += "\n" + dataNuevoEvento.join(sep);
         const contenidoNuevo = contenidoActual + lineasNuevas;
 
         const putRes = await fetch(urlAPI, {
@@ -248,19 +244,17 @@ async function guardarEnGitHub(proveedorForzado, empresaForzada) {
             // ACTUALIZACIÓN OPTIMISTA (Redibujo Mágico)
             // ==========================================
             if (eventoUpper === 'ELIMINAR' || eventoUpper === 'DEVOLVER') {
-                // Borramos el equipo de la memoria local
                 delete mapaInventarioGlobal[serial];
             } else {
                 let equipo = mapaInventarioGlobal[serial];
                 
-                // Si es un equipo Nuevo, lo creamos en la memoria local
                 if (!equipo) {
                     equipo = new Array(encabezadosGlobales.length).fill('');
-                    equipo[0] = serial; // Columna 1 siempre es el serial
+                    equipo[0] = serial;
                     
                     let idxProv = encabezadosGlobales.findIndex(h => h.trim().toLowerCase().includes('proveedor'));
                     let idxEmp = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'empresa');
-                    let idxNombre = encabezadosGlobales.findIndex(h => h.trim().toLowerCase().replace('_', ' ') === 'nombre equipo');
+                    let idxNombre = encabezadosGlobales.findIndex(h => h.trim().toLowerCase().replace(/_/g, ' ') === 'nombre equipo');
                     let idxTipo = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'tipo');
                     let idxMarca = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'marca');
                     let idxProp = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'propiedad');
@@ -268,7 +262,6 @@ async function guardarEnGitHub(proveedorForzado, empresaForzada) {
                     if (idxProv > -1) equipo[idxProv] = proveedorForzado;
                     if (idxEmp > -1) equipo[idxEmp] = empresaForzada;
                     
-                    // Inyectamos los nuevos valores al instante en la pantalla
                     if (idxNombre > -1) equipo[idxNombre] = document.getElementById('m-nombre') ? document.getElementById('m-nombre').value.toUpperCase() : '';
                     if (idxTipo > -1) equipo[idxTipo] = document.getElementById('m-tipo') ? document.getElementById('m-tipo').value.toUpperCase() : 'PORTATIL';
                     if (idxMarca > -1) equipo[idxMarca] = document.getElementById('m-marca') ? document.getElementById('m-marca').value.toUpperCase() : '';
@@ -277,7 +270,6 @@ async function guardarEnGitHub(proveedorForzado, empresaForzada) {
                     mapaInventarioGlobal[serial] = equipo;
                 }
 
-                // Actualizamos los campos en memoria
                 let idxResp = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'responsable');
                 let idxArea = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'area');
                 let idxCargo = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'cargo');
@@ -305,11 +297,9 @@ async function guardarEnGitHub(proveedorForzado, empresaForzada) {
                 if (idxFechaAct > -1) equipo[idxFechaAct] = fechaHoy;
             }
 
-            // Redibujamos la tabla instantáneamente
             let datosModulo = Object.values(mapaInventarioGlobal).map(cols => ({ data: cols }));
             let esModuloYS = encabezadosGlobales.some(h => h.trim().toLowerCase() === 'serial_proveedor');
             
-            // Forzamos el redibujado vaciando el buscador
             const buscador = document.getElementById("buscador");
             if(buscador) buscador.value = "";
             
@@ -318,7 +308,6 @@ async function guardarEnGitHub(proveedorForzado, empresaForzada) {
                 window.filtrarTabla();
             }
 
-            // Notificación visual temporal elegante
             const toast = document.createElement('div');
             toast.innerText = '¡Aplicado al instante! ☁️ Sincronizando con la nube en segundo plano...';
             toast.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background-color: #0D6BB4; color: white; padding: 15px 25px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.2); font-family: sans-serif; font-weight: bold; z-index: 9999; opacity: 0; transition: opacity 0.5s ease;';
