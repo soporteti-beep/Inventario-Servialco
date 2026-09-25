@@ -88,12 +88,14 @@
             <div class="form-grid">
                 <div class="form-group"><label>Fecha*</label><input type="date" id="m-fecha" required></div>
                 <div class="form-group"><label>Llave: Serial AYS (Equipos) o Serial (Monitores)*</label><input type="text" id="m-serial" placeholder="Ej: AS25153 o 101555" required></div>
-                <div class="form-group"><label>Evento*</label><select id="m-evento">
-    <option value="Cambio Responsable">Cambio Responsable</option>
-    <option value="Nuevo">Nuevo</option>
-    <option value="Eliminar">Eliminar</option>
-    <option value="Devolver">Devolver</option>
-</select></div>
+                <div class="form-group"><label>Evento*</label>
+                    <select id="m-evento">
+                        <option value="Cambio Responsable">Cambio Responsable</option>
+                        <option value="NUEVO">Nuevo</option>
+                        <option value="Eliminar">Eliminar</option>
+                        <option value="Devolver">Devolver</option>
+                    </select>
+                </div>
                 <div class="form-group"><label>Empresa Destino</label><select id="m-empresa"><option value="SERVIALCO" selected>SERVIALCO</option><option value="CONSTRUSALCO">CONSTRUSALCO</option></select></div>
                 <div class="form-group"><label>Responsable</label><input type="text" id="m-resp"></div>
                 <div class="form-group"><label>Área</label><input type="text" id="m-area"></div>
@@ -128,7 +130,7 @@
     <script src="../js/ui.js"></script>
     <script>
         let empresaFiltroActiva = 'SERVIALCO'; 
-        window.onload = () => { cargarModulo('ays-servialco.csv', false); };
+        window.onload = () => { cargarModulo('ays-servialco.csv', true); };
 
         function filtrarEmpresa(empresa, btn) {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
