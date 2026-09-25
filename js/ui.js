@@ -86,46 +86,66 @@ function filtrarTabla() {
 function abrirModal() { 
     if(document.getElementById('miModal')) {
         document.getElementById('miModal').style.display = 'block'; 
+        
         // Reiniciar valores del formulario al abrir
-        document.getElementById('m-serial').value = '';
-        document.getElementById('m-evento').selectedIndex = 0; // Selecciona la primera opción por defecto
-        document.getElementById('m-resp').value = '';
-        document.getElementById('m-area').value = '';
-        document.getElementById('m-cargo').value = '';
-        document.getElementById('m-ubic').value = '';
-        document.getElementById('m-estado').value = 'ASIGNADO';
-        document.getElementById('m-obs').value = '';
+        if(document.getElementById('m-serial')) document.getElementById('m-serial').value = '';
+        if(document.getElementById('m-evento')) document.getElementById('m-evento').selectedIndex = 0; 
+        if(document.getElementById('m-resp')) document.getElementById('m-resp').value = '';
+        if(document.getElementById('m-area')) document.getElementById('m-area').value = '';
+        if(document.getElementById('m-cargo')) document.getElementById('m-cargo').value = '';
+        if(document.getElementById('m-ubic')) document.getElementById('m-ubic').value = '';
+        if(document.getElementById('m-estado')) document.getElementById('m-estado').value = 'ASIGNADO';
+        if(document.getElementById('m-obs')) document.getElementById('m-obs').value = '';
+        
+        // Limpiar los 4 campos nuevos por si acaso
+        if(document.getElementById('m-nombre')) document.getElementById('m-nombre').value = '';
+        if(document.getElementById('m-marca')) document.getElementById('m-marca').value = '';
+        if(document.getElementById('m-tipo')) document.getElementById('m-tipo').selectedIndex = 0;
+        if(document.getElementById('m-propiedad')) document.getElementById('m-propiedad').selectedIndex = 0;
 
         // Vinculamos el evento onchange a la lista desplegable y actualizamos la vista
         const selectEvento = document.getElementById('m-evento');
-        selectEvento.onchange = toggleCamposPorEvento;
-        toggleCamposPorEvento();
+        if (selectEvento) {
+            selectEvento.onchange = toggleCamposPorEvento;
+            toggleCamposPorEvento();
+        }
     }
     if(document.getElementById('m-fecha')) {
         document.getElementById('m-fecha').value = new Date().toISOString().split('T')[0];
     }
 }
 
-// NUEVA FUNCIÓN: Oculta o muestra campos dependiendo del evento
+// NUEVA FUNCIÓN MEJORADA: Oculta o muestra campos dependiendo del evento
 function toggleCamposPorEvento() {
     const selectEvento = document.getElementById('m-evento');
     if (!selectEvento) return;
 
     const evento = selectEvento.value.toUpperCase();
     
-    // IDs de los campos que queremos ocultar (dejaremos Observaciones por si quieres poner un motivo)
-    const camposExtras = ['m-area', 'm-cargo', 'm-ubic', 'm-estado'];
+    // IDs de los campos que queremos ocultar al eliminar/devolver
+    const camposExtras = ['m-area', 'm-cargo', 'm-ubic', 'm-estado', 'm-resp'];
+    
+    // Elementos con la clase .campo-nuevo (Nombre, Tipo, Marca, Propiedad)
+    const camposNuevos = document.querySelectorAll('.campo-nuevo');
 
+    // 1. Mostrar/Ocultar campos normales (Responsable, Area, Cargo...)
     camposExtras.forEach(id => {
         const elemento = document.getElementById(id);
         if (elemento && elemento.parentElement) {
-            // Si el evento es Eliminar o Devolver, ocultamos los campos extra
             if (evento === 'ELIMINAR' || evento === 'DEVOLVER') {
                 elemento.parentElement.style.display = 'none';
             } else {
-                // Para eventos como Nuevo o Cambio Responsable, volvemos a mostrarlos
                 elemento.parentElement.style.display = '';
             }
+        }
+    });
+
+    // 2. Mostrar/Ocultar campos exclusivos de "NUEVO"
+    camposNuevos.forEach(el => {
+        if (evento === 'NUEVO') {
+            el.style.display = ''; // Aparecen
+        } else {
+            el.style.display = 'none'; // Se esconden
         }
     });
 }
@@ -138,7 +158,6 @@ function cerrarHistorial() {
     if(document.getElementById('modalHistorial')) document.getElementById('modalHistorial').style.display = 'none'; 
 }
 
-// Vincula el botón de guardar dinámicamente según la página actual
 function prepararGuardado(proveedor, empresa) {
     const btnGuardar = document.querySelector('.modal-footer .btn-guardar');
     if(btnGuardar) {
