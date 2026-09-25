@@ -101,9 +101,9 @@
         </div>
     </div>
 
-    <!-- SCRIPTS MODULARES (Forzando actualización con v=12) -->
-    <script src="js/api.js?v=12"></script>
-    <script src="js/ui.js?v=12"></script>
+    <!-- SCRIPTS MODULARES (Forzando la actualización del caché para evitar fallos visuales) -->
+    <script src="js/api.js?v=13"></script>
+    <script src="js/ui.js?v=13"></script>
     <script>
         let datosGlobales = [];
 
@@ -129,6 +129,8 @@
                 );
 
                 let mapaInventario = {};
+                let idxProvCsv = -1;
+                let idxEmpCsv = -1;
 
                 respuestasCsv.forEach(data => {
                     if (!data) return;
@@ -139,6 +141,8 @@
                     
                     if (!cabeceraEstablecida) {
                         encabezadosGlobales = filas[0].split(separador);
+                        idxProvCsv = encabezadosGlobales.findIndex(h => h.trim().toLowerCase().includes('proveedor'));
+                        idxEmpCsv = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'empresa');
                         renderizarEncabezados(false);
                         cabeceraEstablecida = true;
                     }
@@ -146,13 +150,19 @@
                     for (let i = 1; i < filas.length; i++) {
                         const columnas = filas[i].split(separador);
                         const serialKey = columnas[0] ? columnas[0].trim().toUpperCase() : '';
-                        const proveedor = columnas[5] ? columnas[5].trim() : 'PROPIO';
-                        const empresa = columnas[6] ? columnas[6].trim() : 'S/E';
+                        
+                        let proveedor = idxProvCsv > -1 && columnas[idxProvCsv] ? columnas[idxProvCsv].trim().toUpperCase() : 'PROPIO';
+                        let empresa = idxEmpCsv > -1 && columnas[idxEmpCsv] ? columnas[idxEmpCsv].trim().toUpperCase() : 'S/E';
+                        if (!proveedor) proveedor = 'PROPIO';
+
                         const etiquetaGrupo = `${proveedor} - ${empresa}`;
+                        
+                        // CLAVE ÚNICA: Soluciona el problema de seriales duplicados entre módulos
+                        const claveUnica = `${serialKey}_${proveedor}`;
                         
                         if (serialKey) {
                             gruposUnicos.add(etiquetaGrupo);
-                            mapaInventario[serialKey] = { data: columnas, grupo: etiquetaGrupo };
+                            mapaInventario[claveUnica] = { data: columnas, grupo: etiquetaGrupo };
                         }
                     }
                 });
@@ -182,20 +192,21 @@
                             let bEmp = colsBit[9] ? colsBit[9].trim().toUpperCase() : '';
                             let bObs = colsBit[10] ? colsBit[10].trim() : '';
                             
-                            // Los 4 campos nuevos (pueden venir vacíos en filas viejas)
                             let bNombre = colsBit[11] ? colsBit[11].trim().toUpperCase() : '';
                             let bTipo = colsBit[12] ? colsBit[12].trim().toUpperCase() : '';
                             let bMarca = colsBit[13] ? colsBit[13].trim().toUpperCase() : '';
                             let bProp = colsBit[14] ? colsBit[14].trim().toUpperCase() : '';
 
+                            let provReal = bProv || 'PROPIO';
+                            let claveUnica = `${bSerial}_${provReal}`;
+
                             if (bEvento === 'ELIMINAR' || bEvento === 'DEVOLVER') {
-                                delete mapaInventario[bSerial];
+                                delete mapaInventario[claveUnica];
                                 continue;
                             }
 
-                            if (mapaInventario[bSerial]) {
-                                // Actualizar equipo existente
-                                let equipoEncontrado = mapaInventario[bSerial].data;
+                            if (mapaInventario[claveUnica]) {
+                                let equipoEncontrado = mapaInventario[claveUnica].data;
                                 let idxResp = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'responsable');
                                 let idxArea = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'area');
                                 let idxCargo = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'cargo');
@@ -214,7 +225,6 @@
                                 if (idxEntrega > -1 && bFechaEntrega) equipoEncontrado[idxEntrega] = bFechaEntrega;
                                 if (idxFechaAct > -1) equipoEncontrado[idxFechaAct] = fechaHoy;
                             } else {
-                                // INYECCIÓN INMEDIATA: Si el equipo es nuevo en la bitácora pero aún no está en los CSV
                                 if (bEvento === 'NUEVO' || bEvento === 'ASIGNACION_INICIAL') {
                                     let equipoEncontrado = new Array(encabezadosGlobales.length).fill('');
                                     equipoEncontrado[0] = bSerial;
@@ -235,7 +245,7 @@
                                     let idxFechaAct = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'ultima_actualizacion');
                                     let idxEntrega = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'fecha_entrega');
 
-                                    if (idxProv > -1) equipoEncontrado[idxProv] = bProv;
+                                    if (idxProv > -1) equipoEncontrado[idxProv] = provReal;
                                     if (idxEmp > -1) equipoEncontrado[idxEmp] = bEmp;
                                     if (idxNombre > -1) equipoEncontrado[idxNombre] = bNombre;
                                     if (idxTipo > -1) equipoEncontrado[idxTipo] = bTipo || 'PORTATIL';
@@ -251,17 +261,16 @@
                                     if (idxEntrega > -1) equipoEncontrado[idxEntrega] = bFechaEntrega;
                                     if (idxFechaAct > -1) equipoEncontrado[idxFechaAct] = fechaHoy;
 
-                                    let etiquetaGrupo = `${bProv || 'PROPIO'} - ${bEmp || 'S/E'}`;
+                                    let etiquetaGrupo = `${provReal} - ${bEmp || 'S/E'}`;
                                     gruposUnicos.add(etiquetaGrupo);
                                     
-                                    mapaInventario[bSerial] = { data: equipoEncontrado, grupo: etiquetaGrupo };
+                                    mapaInventario[claveUnica] = { data: equipoEncontrado, grupo: etiquetaGrupo };
                                 }
                             }
                         }
                     }
                 } catch (errBit) { console.warn("Bitácora no sincronizada en visor global:", errBit); }
 
-                // Crear pestañas dinámicas
                 const tabsContainer = document.getElementById('tabs-container');
                 tabsContainer.innerHTML = `<button class="tab-btn active" onclick="filtrarPorPestana('TODOS', this)">VISIÓN GLOBAL</button>`;
                 
