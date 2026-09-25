@@ -74,9 +74,7 @@ async function cargarModulo(csvUrl, esModuloYS) {
                         if (idxUbic > -1 && bUbic) equipoEncontrado[idxUbic] = bUbic;
                         if (idxEstado > -1 && bEstado) equipoEncontrado[idxEstado] = bEstado;
                         if (idxObs > -1 && bObs) equipoEncontrado[idxObs] = bObs;
-                        
                         if (idxEntrega > -1 && bFechaEntrega) equipoEncontrado[idxEntrega] = bFechaEntrega;
-                        
                         if (idxFechaAct > -1) equipoEncontrado[idxFechaAct] = fechaHoy;
                     }
                 }
@@ -110,7 +108,6 @@ async function guardarEnGitHub(proveedorForzado, empresaForzada) {
     const eventoUpper = evento.toUpperCase().trim();
     let equipoExiste = false;
 
-    // Verificar si el equipo ya está en la tabla (por Serial principal o de proveedor)
     if (mapaInventarioGlobal[serial]) {
         equipoExiste = true;
     } else {
@@ -120,16 +117,14 @@ async function guardarEnGitHub(proveedorForzado, empresaForzada) {
         }
     }
 
-    // REGLA 1: Evitar duplicar un equipo que ya existe
     if (eventoUpper === 'NUEVO' && equipoExiste) {
         alert(`❌ ERROR: El serial ${serial} YA EXISTE en este inventario.`);
-        return; // Corta la ejecución de inmediato
+        return; 
     }
 
-    // REGLA 2: Evitar actualizar un equipo fantasma/inventado
     if (eventoUpper !== 'NUEVO' && eventoUpper !== 'ASIGNACION_INICIAL' && !equipoExiste) {
         alert(`❌ ERROR: El serial ${serial} NO EXISTE. Si es un equipo recién comprado, debes seleccionar el evento "Nuevo".`);
-        return; // Corta la ejecución de inmediato
+        return; 
     }
     // ==========================================
 
@@ -139,7 +134,6 @@ async function guardarEnGitHub(proveedorForzado, empresaForzada) {
 
     document.querySelector('.modal-footer .btn-guardar').innerText = "Guardando... ⏳";
 
-    // 11 Columnas exactas para el CSV
     const dataNuevoEvento = [
         fechaEntrega, 
         serial, 
@@ -205,7 +199,6 @@ async function guardarEnGitHub(proveedorForzado, empresaForzada) {
                     ? equipoPrevio[idxObs].trim() 
                     : 'Asignación inicial previa a la actualización web';
 
-                // 11 Columnas exactas para el registro inicial
                 const dataInicial = [
                     prevFecha, 
                     serial, 
@@ -243,14 +236,83 @@ async function guardarEnGitHub(proveedorForzado, empresaForzada) {
 
         if (putRes.ok) {
             cerrarModal(); 
-            location.reload(); // Recarga automática silenciosa
+
+            // ==========================================
+            // ACTUALIZACIÓN OPTIMISTA (Redibujo Mágico)
+            // ==========================================
+            if (eventoUpper === 'ELIMINAR' || eventoUpper === 'DEVOLVER') {
+                // Borramos el equipo de la memoria local
+                delete mapaInventarioGlobal[serial];
+            } else {
+                let equipo = mapaInventarioGlobal[serial];
+                
+                // Si es un equipo Nuevo, lo creamos en la memoria local
+                if (!equipo) {
+                    equipo = new Array(encabezadosGlobales.length).fill('');
+                    equipo[0] = serial; // Columna 1 siempre es el serial
+                    let idxProv = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'proveedor');
+                    let idxEmp = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'empresa');
+                    let idxTipo = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'tipo');
+                    
+                    if (idxProv > -1) equipo[idxProv] = proveedorForzado;
+                    if (idxEmp > -1) equipo[idxEmp] = empresaForzada;
+                    if (idxTipo > -1) equipo[idxTipo] = 'COMPUTADOR'; // Valor genérico
+                    
+                    mapaInventarioGlobal[serial] = equipo;
+                }
+
+                // Actualizamos los campos en memoria
+                let idxResp = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'responsable');
+                let idxArea = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'area');
+                let idxCargo = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'cargo');
+                let idxUbic = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'ubicacion');
+                let idxEstado = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'estado');
+                let idxObs = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'observaciones');
+                let idxFechaAct = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'ultima_actualizacion');
+                let idxEntrega = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'fecha_entrega');
+
+                let mResp = document.getElementById('m-resp').value.toUpperCase();
+                let mArea = document.getElementById('m-area').value.toUpperCase();
+                let mCargo = document.getElementById('m-cargo').value.toUpperCase();
+                let mUbic = document.getElementById('m-ubic').value.toUpperCase();
+                let mEstado = document.getElementById('m-estado').value.toUpperCase();
+                let mObs = document.getElementById('m-obs').value.toUpperCase();
+                let fechaHoy = new Date().toISOString().split('T')[0];
+
+                if (idxResp > -1 && mResp) equipo[idxResp] = mResp;
+                if (idxArea > -1 && mArea) equipo[idxArea] = mArea;
+                if (idxCargo > -1 && mCargo) equipo[idxCargo] = mCargo;
+                if (idxUbic > -1 && mUbic) equipo[idxUbic] = mUbic;
+                if (idxEstado > -1 && mEstado) equipo[idxEstado] = mEstado;
+                if (idxObs > -1 && mObs) equipo[idxObs] = mObs;
+                if (idxEntrega > -1 && fechaEntrega) equipo[idxEntrega] = fechaEntrega;
+                if (idxFechaAct > -1) equipo[idxFechaAct] = fechaHoy;
+            }
+
+            // Redibujamos la tabla instantáneamente
+            let datosModulo = Object.values(mapaInventarioGlobal).map(cols => ({ data: cols }));
+            let esModuloYS = encabezadosGlobales.some(h => h.trim().toLowerCase() === 'serial_proveedor');
+            
+            pintarTablas(datosModulo, esModuloYS);
+            if (typeof window.filtrarTabla === 'function') {
+                window.filtrarTabla();
+            }
+
+            // Notificación visual temporal elegante
+            const toast = document.createElement('div');
+            toast.innerText = '¡Aplicado al instante! ☁️ Sincronizando con la nube en segundo plano...';
+            toast.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background-color: #0D6BB4; color: white; padding: 15px 25px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.2); font-family: sans-serif; font-weight: bold; z-index: 9999; opacity: 0; transition: opacity 0.5s ease;';
+            document.body.appendChild(toast);
+            
+            setTimeout(() => { toast.style.opacity = '1'; }, 100);
+            setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 500); }, 3500);
+
         } else {
             const errorDetails = await putRes.json();
             throw new Error(`Error de GitHub: ${errorDetails.message}`);
         }
     } catch (error) {
         alert("Error: " + error.message);
-        // Si el error es de autenticación, borramos el token para volver a pedirlo
         if (error.message.includes("autenticación") || error.message.includes("Bad credentials")) {
             localStorage.removeItem('gh_token'); 
         }
