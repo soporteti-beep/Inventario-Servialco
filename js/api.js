@@ -44,16 +44,57 @@ async function cargarModulo(csvUrl, esModuloYS) {
 
                     let bFechaEntrega = colsBit[0] ? colsBit[0].trim() : '';
                     let bSerial = colsBit[1] ? colsBit[1].trim().toUpperCase() : '';
+                    let bEvento = colsBit[2] ? colsBit[2].trim().toUpperCase() : '';
                     let bResp = colsBit[3] ? colsBit[3].trim() : '';
                     let bArea = colsBit[4] ? colsBit[4].trim() : '';
                     let bCargo = colsBit[5] ? colsBit[5].trim() : '';
                     let bUbic = colsBit[6] ? colsBit[6].trim() : '';
                     let bEstado = colsBit[7] ? colsBit[7].trim().toUpperCase() : '';
+                    let bProv = colsBit[8] ? colsBit[8].trim().toUpperCase() : '';
+                    let bEmp = colsBit[9] ? colsBit[9].trim().toUpperCase() : '';
                     let bObs = colsBit[10] ? colsBit[10].trim() : '';
+                    let bNombre = colsBit[11] ? colsBit[11].trim().toUpperCase() : '';
+                    let bTipo = colsBit[12] ? colsBit[12].trim().toUpperCase() : '';
+                    let bMarca = colsBit[13] ? colsBit[13].trim().toUpperCase() : '';
+                    let bProp = colsBit[14] ? colsBit[14].trim().toUpperCase() : '';
 
-                    let equipoEncontrado = null;
-                    if (mapaInventarioGlobal[bSerial]) {
-                        equipoEncontrado = mapaInventarioGlobal[bSerial];
+                    if (bEvento === 'ELIMINAR' || bEvento === 'DEVOLVER') {
+                        delete mapaInventarioGlobal[bSerial];
+                        continue;
+                    }
+
+                    let equipoEncontrado = mapaInventarioGlobal[bSerial];
+
+                    // LA MAGIA: Si no existe en el CSV principal pero SÍ es NUEVO en la bitácora, lo inyectamos al vuelo
+                    if (!equipoEncontrado && (bEvento === 'NUEVO' || bEvento === 'ASIGNACION_INICIAL')) {
+                        let urlLower = csvUrl.toLowerCase();
+                        let esDeEsteModulo = false;
+                        
+                        if (urlLower.includes('servialco') && !urlLower.includes('ays') && (bProv.includes('PROPIO') || bProv.includes('SERVIALCO'))) esDeEsteModulo = true;
+                        else if (urlLower.includes('ays') && bProv.includes('AYS')) esDeEsteModulo = true;
+                        else if (urlLower.includes('unicat') && bProv.includes('UNICAT')) esDeEsteModulo = true;
+                        else if (urlLower.includes('arky') && bProv.includes('ARKY')) esDeEsteModulo = true;
+
+                        if (esDeEsteModulo) {
+                            equipoEncontrado = new Array(encabezadosGlobales.length).fill('');
+                            equipoEncontrado[0] = bSerial;
+                            
+                            let idxProv = encabezadosGlobales.findIndex(h => h.trim().toLowerCase().includes('proveedor'));
+                            let idxEmp = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'empresa');
+                            let idxNombre = encabezadosGlobales.findIndex(h => h.trim().toLowerCase().replace(/_/g, ' ') === 'nombre equipo');
+                            let idxTipo = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'tipo');
+                            let idxMarca = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'marca');
+                            let idxProp = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'propiedad');
+                            
+                            if (idxProv > -1) equipoEncontrado[idxProv] = bProv;
+                            if (idxEmp > -1) equipoEncontrado[idxEmp] = bEmp;
+                            if (idxNombre > -1) equipoEncontrado[idxNombre] = bNombre;
+                            if (idxTipo > -1) equipoEncontrado[idxTipo] = bTipo || 'PORTATIL';
+                            if (idxMarca > -1) equipoEncontrado[idxMarca] = bMarca;
+                            if (idxProp > -1) equipoEncontrado[idxProp] = bProp;
+                            
+                            mapaInventarioGlobal[bSerial] = equipoEncontrado;
+                        }
                     }
 
                     if (equipoEncontrado) {
@@ -145,7 +186,7 @@ async function guardarEnGitHub(proveedorForzado, empresaForzada) {
         const dataNuevoEvento = [
             fechaEntrega, 
             serial, 
-            eventoUpper, // Forzamos mayúscula siempre
+            eventoUpper, 
             document.getElementById('m-resp') ? document.getElementById('m-resp').value : '', 
             document.getElementById('m-area') ? document.getElementById('m-area').value : '', 
             document.getElementById('m-cargo') ? document.getElementById('m-cargo').value : '', 
@@ -160,7 +201,57 @@ async function guardarEnGitHub(proveedorForzado, empresaForzada) {
             document.getElementById('m-propiedad') ? document.getElementById('m-propiedad').value : ''
         ].map(val => val.replace(new RegExp(sep, 'g'), '').replace(/\n/g, ' ')); 
 
-        let lineasNuevas = "\n" + dataNuevoEvento.join(sep);
+        let lineasNuevas = "";
+        let existeEnBitacora = false;
+        for(let i = 1; i < filasBit.length; i++) {
+            let sepLinea = filasBit[i].includes(';') ? ';' : ',';
+            let cols = filasBit[i].split(sepLinea);
+            let sBit = cols[1] ? cols[1].trim().toUpperCase() : '';
+            if(sBit === serial) {
+                existeEnBitacora = true;
+                break;
+            }
+        }
+
+        if(!existeEnBitacora) {
+            let equipoPrevio = mapaInventarioGlobal[serial];
+            let idxProv = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'serial_proveedor');
+            
+            if(!equipoPrevio && idxProv > -1) {
+                equipoPrevio = Object.values(mapaInventarioGlobal).find(cols => cols[idxProv] && cols[idxProv].trim().toUpperCase() === serial);
+            }
+
+            if(equipoPrevio) {
+                let idxResp = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'responsable');
+                let idxArea = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'area');
+                let idxCargo = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'cargo');
+                let idxUbic = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'ubicacion');
+                let idxEstado = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'estado');
+                let idxEntrega = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'fecha_entrega');
+                let idxObs = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'observaciones');
+
+                let prevResp = idxResp > -1 && equipoPrevio[idxResp] ? equipoPrevio[idxResp].trim() : '';
+                let prevArea = idxArea > -1 && equipoPrevio[idxArea] ? equipoPrevio[idxArea].trim() : '';
+                let prevCargo = idxCargo > -1 && equipoPrevio[idxCargo] ? equipoPrevio[idxCargo].trim() : '';
+                let prevUbic = idxUbic > -1 && equipoPrevio[idxUbic] ? equipoPrevio[idxUbic].trim() : '';
+                let prevEstado = idxEstado > -1 && equipoPrevio[idxEstado] ? equipoPrevio[idxEstado].trim() : '';
+                let prevFecha = idxEntrega > -1 && equipoPrevio[idxEntrega] && equipoPrevio[idxEntrega].trim() !== '' 
+                    ? equipoPrevio[idxEntrega].trim() 
+                    : '2025-06-13'; 
+                let prevObs = idxObs > -1 && equipoPrevio[idxObs] && equipoPrevio[idxObs].trim() !== '' 
+                    ? equipoPrevio[idxObs].trim() 
+                    : 'Asignación inicial previa a la actualización web';
+
+                const dataInicial = [
+                    prevFecha, serial, 'ASIGNACION_INICIAL', prevResp, prevArea, prevCargo, prevUbic, prevEstado, proveedorForzado, empresaForzada, prevObs,
+                    '', '', '', ''
+                ].map(val => val.replace(new RegExp(sep, 'g'), '').replace(/\n/g, ' '));
+
+                lineasNuevas += "\n" + dataInicial.join(sep);
+            }
+        }
+
+        lineasNuevas += "\n" + dataNuevoEvento.join(sep);
         const contenidoNuevo = contenidoActual + lineasNuevas;
 
         const putRes = await fetch(urlAPI, {
