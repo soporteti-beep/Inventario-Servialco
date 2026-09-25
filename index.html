@@ -101,9 +101,9 @@
         </div>
     </div>
 
-    <!-- SCRIPTS MODULARES (Forzando la actualización del caché) -->
-    <script src="js/api.js?v=11"></script>
-    <script src="js/ui.js?v=11"></script>
+    <!-- SCRIPTS MODULARES (Forzando actualización con v=12) -->
+    <script src="js/api.js?v=12"></script>
+    <script src="js/ui.js?v=12"></script>
     <script>
         let datosGlobales = [];
 
@@ -172,14 +172,29 @@
 
                             let bFechaEntrega = colsBit[0] ? colsBit[0].trim() : '';
                             let bSerial = colsBit[1] ? colsBit[1].trim().toUpperCase() : '';
+                            let bEvento = colsBit[2] ? colsBit[2].trim().toUpperCase() : '';
                             let bResp = colsBit[3] ? colsBit[3].trim() : '';
                             let bArea = colsBit[4] ? colsBit[4].trim() : '';
                             let bCargo = colsBit[5] ? colsBit[5].trim() : '';
                             let bUbic = colsBit[6] ? colsBit[6].trim() : '';
                             let bEstado = colsBit[7] ? colsBit[7].trim().toUpperCase() : '';
+                            let bProv = colsBit[8] ? colsBit[8].trim().toUpperCase() : '';
+                            let bEmp = colsBit[9] ? colsBit[9].trim().toUpperCase() : '';
                             let bObs = colsBit[10] ? colsBit[10].trim() : '';
+                            
+                            // Los 4 campos nuevos (pueden venir vacíos en filas viejas)
+                            let bNombre = colsBit[11] ? colsBit[11].trim().toUpperCase() : '';
+                            let bTipo = colsBit[12] ? colsBit[12].trim().toUpperCase() : '';
+                            let bMarca = colsBit[13] ? colsBit[13].trim().toUpperCase() : '';
+                            let bProp = colsBit[14] ? colsBit[14].trim().toUpperCase() : '';
+
+                            if (bEvento === 'ELIMINAR' || bEvento === 'DEVOLVER') {
+                                delete mapaInventario[bSerial];
+                                continue;
+                            }
 
                             if (mapaInventario[bSerial]) {
+                                // Actualizar equipo existente
                                 let equipoEncontrado = mapaInventario[bSerial].data;
                                 let idxResp = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'responsable');
                                 let idxArea = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'area');
@@ -198,6 +213,49 @@
                                 if (idxObs > -1 && bObs) equipoEncontrado[idxObs] = bObs;
                                 if (idxEntrega > -1 && bFechaEntrega) equipoEncontrado[idxEntrega] = bFechaEntrega;
                                 if (idxFechaAct > -1) equipoEncontrado[idxFechaAct] = fechaHoy;
+                            } else {
+                                // INYECCIÓN INMEDIATA: Si el equipo es nuevo en la bitácora pero aún no está en los CSV
+                                if (bEvento === 'NUEVO' || bEvento === 'ASIGNACION_INICIAL') {
+                                    let equipoEncontrado = new Array(encabezadosGlobales.length).fill('');
+                                    equipoEncontrado[0] = bSerial;
+                                    
+                                    let idxProv = encabezadosGlobales.findIndex(h => h.trim().toLowerCase().includes('proveedor'));
+                                    let idxEmp = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'empresa');
+                                    let idxNombre = encabezadosGlobales.findIndex(h => h.trim().toLowerCase().replace(/_/g, ' ') === 'nombre equipo');
+                                    let idxTipo = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'tipo');
+                                    let idxMarca = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'marca');
+                                    let idxProp = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'propiedad');
+                                    
+                                    let idxResp = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'responsable');
+                                    let idxArea = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'area');
+                                    let idxCargo = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'cargo');
+                                    let idxUbic = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'ubicacion');
+                                    let idxEstado = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'estado');
+                                    let idxObs = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'observaciones');
+                                    let idxFechaAct = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'ultima_actualizacion');
+                                    let idxEntrega = encabezadosGlobales.findIndex(h => h.trim().toLowerCase() === 'fecha_entrega');
+
+                                    if (idxProv > -1) equipoEncontrado[idxProv] = bProv;
+                                    if (idxEmp > -1) equipoEncontrado[idxEmp] = bEmp;
+                                    if (idxNombre > -1) equipoEncontrado[idxNombre] = bNombre;
+                                    if (idxTipo > -1) equipoEncontrado[idxTipo] = bTipo || 'PORTATIL';
+                                    if (idxMarca > -1) equipoEncontrado[idxMarca] = bMarca;
+                                    if (idxProp > -1) equipoEncontrado[idxProp] = bProp;
+                                    
+                                    if (idxResp > -1) equipoEncontrado[idxResp] = bResp;
+                                    if (idxArea > -1) equipoEncontrado[idxArea] = bArea;
+                                    if (idxCargo > -1) equipoEncontrado[idxCargo] = bCargo;
+                                    if (idxUbic > -1) equipoEncontrado[idxUbic] = bUbic;
+                                    if (idxEstado > -1) equipoEncontrado[idxEstado] = bEstado || 'ASIGNADO';
+                                    if (idxObs > -1) equipoEncontrado[idxObs] = bObs;
+                                    if (idxEntrega > -1) equipoEncontrado[idxEntrega] = bFechaEntrega;
+                                    if (idxFechaAct > -1) equipoEncontrado[idxFechaAct] = fechaHoy;
+
+                                    let etiquetaGrupo = `${bProv || 'PROPIO'} - ${bEmp || 'S/E'}`;
+                                    gruposUnicos.add(etiquetaGrupo);
+                                    
+                                    mapaInventario[bSerial] = { data: equipoEncontrado, grupo: etiquetaGrupo };
+                                }
                             }
                         }
                     }
