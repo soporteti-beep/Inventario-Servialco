@@ -74,9 +74,14 @@
             <div class="form-grid">
                 <div class="form-group"><label>Fecha*</label><input type="date" id="m-fecha" required></div>
                 <div class="form-group"><label>Llave: SERIAL (Equipos) o SERIAL NUMBER (Monitores)*</label><input type="text" id="m-serial" placeholder="Ej: 5CG416681G o 7DU6H8EYC04192A" required></div>
-                <div class="form-group"><label>Evento*</label><select id="m-evento"><option value="Cambio Responsable">Cambio Responsable</option>
-    <option value="Nuevo">Nuevo</option>
-    <option value="Eliminar">Eliminar</option></select></div>
+                <div class="form-group"><label>Evento*</label>
+                    <select id="m-evento">
+                        <option value="Cambio Responsable">Cambio Responsable</option>
+                        <!-- ASEGURARSE QUE EL VALUE SEA "NUEVO" Y NO "Nuevo" -->
+                        <option value="NUEVO">Nuevo</option> 
+                        <option value="Eliminar">Eliminar</option>
+                    </select>
+                </div>
                 <div class="form-group"><label>Responsable</label><input type="text" id="m-resp"></div>
                 <div class="form-group"><label>Área</label><input type="text" id="m-area"></div>
                 <div class="form-group"><label>Cargo</label><input type="text" id="m-cargo"></div>
