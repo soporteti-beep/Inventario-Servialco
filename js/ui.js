@@ -107,7 +107,7 @@ function abrirModal() {
         const selectEvento = document.getElementById('m-evento');
         if (selectEvento) {
             selectEvento.onchange = toggleCamposPorEvento;
-            toggleCamposPorEvento();
+            toggleCamposPorEvento(); // Ejecutar inmediatamente al abrir
         }
     }
     if(document.getElementById('m-fecha')) {
@@ -121,6 +121,7 @@ function toggleCamposPorEvento() {
     if (!selectEvento) return;
 
     const evento = selectEvento.value.toUpperCase();
+    console.log("Cambio detectado. Evento seleccionado:", evento); // <- RASTREADOR PARA DEPURACIÓN
     
     // IDs de los campos que queremos ocultar al eliminar/devolver
     const camposExtras = ['m-area', 'm-cargo', 'm-ubic', 'm-estado', 'm-resp'];
