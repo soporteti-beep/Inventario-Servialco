@@ -1,29 +1,61 @@
-# 🚀 Servialco Asset Tracking | Sistema Global de Inventarios
+# 🚀 Sistema Global de Inventarios | Servialco Asset Tracking
 
-![HTML5](https://img.shields.io/badge/Frontend-HTML5_%7C_CSS3_%7C_JS-E34F26?style=for-the-badge&logo=html5&logoColor=white)
-![Python](https://img.shields.io/badge/Automatización-Python_3.10-3776AB?style=for-the-badge&logo=python&logoColor=white)
-![Vercel](https://img.shields.io/badge/API_Segura-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)
-![GitHub Actions](https://img.shields.io/badge/CI/CD-GitHub_Actions-2088FF?style=for-the-badge&logo=github-actions&logoColor=white)
-
-> **Más que un simple registro, un ecosistema inteligente de gestión.**
-> Una plataforma web unificada y en la nube diseñada para revolucionar cómo **Servialco SAS** y sus aliados (AYS, UNICAT, ARKY) administran, rastrean y auditan sus Activos Fijos y equipos tecnológicos.
+> **La evolución del control de activos fijos.**
+> Una plataforma ágil, automatizada y en la nube que transforma la manera en que **Servialco SAS** y sus aliados (AYS, UNICAT, ARKY) administran, rastrean y auditan sus equipos tecnológicos.
 
 ---
 
-## 🎯 ¿Qué hace esta plataforma?
+## 🎯 ¿Qué soluciona esta plataforma?
 
-El sistema elimina la dependencia de archivos de Excel manuales desactualizados y los reemplaza por una experiencia web rápida, segura y siempre sincronizada.
+El sistema elimina el caos de tener múltiples archivos de Excel desactualizados rodando por correos electrónicos. En su lugar, ofrece un portal web unificado, seguro y automático.
 
-*   👁️ **Visor Global 360°:** Un panel de control central (`index.html`) que unifica todos los inventarios. Busca un equipo, monitor o responsable y encuéntralo al instante sin importar a qué empresa pertenezca.
-*   🏢 **Gestión Modular Independiente:** Espacios de trabajo aislados para cada unidad de negocio (Servialco, AYS, UNICAT, ARKY). Cada módulo gestiona solo lo suyo, pero todo alimenta una base de datos central.
-*   ⏳ **Trazabilidad Histórica Incorruptible:** ¿Quién tuvo este portátil hace un año? El sistema guarda una bitácora inmutable de cada movimiento (nuevas asignaciones, cambios de área, devoluciones a bodega, reportes de soporte y bajas).
-*   ⚡ **Experiencia en Tiempo Real:** Interfaz optimista que reacciona instantáneamente. Los técnicos registran un evento y la pantalla se actualiza por arte de magia mientras el trabajo pesado ocurre invisiblemente en la nube.
+*   👁️ **Visión Global 360°:** Un buscador maestro. Escribe un nombre, un serial o el nombre de un empleado, y el sistema te dirá exactamente qué equipo tiene y en qué estado está, sin importar de qué empresa sea.
+*   🏢 **Módulos Independientes:** Espacios de trabajo separados para cada proveedor (Servialco, AYS, UNICAT, ARKY). Cada técnico trabaja solo en su módulo, pero todo alimenta a una misma base central.
+*   ⏳ **Historial Incorruptible (Trazabilidad):** ¿Quién tuvo este portátil hace un año? El sistema guarda una "caja negra" o bitácora de cada movimiento (nuevas asignaciones, cambios de área, soporte y bajas). Nada se pierde.
+*   ⚡ **Cero Instalaciones:** Funciona como cualquier página web moderna. Se abre desde el navegador sin instalar absolutamente nada.
 
 ---
 
-## 🏗️ La Arquitectura: ¿Cómo funciona este ecosistema?
+## ⚙️ ¿Cómo funciona? (La Arquitectura del Sistema)
 
-El sistema no utiliza un servidor tradicional y costoso. En su lugar, emplea una arquitectura **Serverless (Sin Servidor)** y flujos automatizados de **CI/CD** que dividen el trabajo en 4 capas estratégicas:
+El sistema funciona como una fábrica automatizada. En lugar de tener a una persona copiando y pegando datos, tenemos "asistentes automáticos" (robots) trabajando en la nube. 
 
-```mermaid
-1️⃣ FRONTEND (La Cara) ➔ 2️⃣ MIDDLEWARE (El Escudo) ➔ 3️⃣ BACKEND (El Cerebro) ➔ 4️⃣ DATA (El Respaldo)
+El flujo es simple y ocurre en segundos:
+
+1. **La Pantalla (Interacción):** El usuario de soporte técnico abre la página web y registra que un equipo cambió de dueño.
+2. **El Libro Mayor (Bitácora):** Ese movimiento se anota automáticamente en un archivo maestro intocable llamado `bitacora.csv`.
+3. **El Robot Organizador (Automatización):** Al detectar una nueva anotación, un robot en la nube se despierta, lee la bitácora y clasifica la información (Ej: *"Ah, este equipo es de AYS, lo guardaré en la carpeta de AYS"*).
+4. **El Reporte Gerencial (Sincronización):** Finalmente, el robot actualiza un archivo de **Google Sheets** en tiempo real para que la gerencia pueda auditar el inventario desde su Drive, siempre con la última versión.
+
+---
+
+## 💡 ¿Por qué se diseñó de esta manera?
+
+Esta estructura fue elegida estratégicamente por tres grandes beneficios para la empresa:
+
+*   **Cero Costos de Infraestructura:** No se necesita comprar ni alquilar servidores costosos. Todo el sistema vive en la infraestructura gratuita de GitHub y Google.
+*   **Inmunidad a Errores Humanos:** Si alguien borra un dato por accidente, el sistema en la nube guarda una "foto" de cada versión del inventario. Siempre se puede viajar en el tiempo y recuperar la información.
+*   **Datos Siempre Sincronizados:** Al centralizar todo en una bitácora que es leída por procesos automáticos, es imposible que el reporte de gerencia diga una cosa y la pantalla del técnico diga otra. Todo es exactamente igual en todas partes.
+
+---
+
+## 📂 ¿Cómo está organizado el proyecto visualmente?
+
+Si miras los archivos del sistema, verás que todo está ordenado de forma lógica y modular. Así es como se ve por dentro:
+
+```text
+📁 Inventario-Servialco/
+│
+├── 📄 index.html         👉 El "Visor Global" (La pantalla principal con el súper-buscador)
+├── 📄 bitacora.csv       👉 El "Libro Mayor" (Donde queda el registro de TODO lo que pasa)
+│
+├── 📁 Servialco/         👉 Pantalla y datos exclusivos de equipos propios de Servialco
+├── 📁 AYS-Servialco/     👉 Pantalla y datos exclusivos de equipos de AYS
+├── 📁 UNICAT/            👉 Pantalla y datos exclusivos de equipos de UNICAT
+├── 📁 ARKY/              👉 Pantalla y datos exclusivos de equipos de ARKY
+│
+├── 📁 js/                👉 El "Motor Interactivo" (Hace que las pantallas respondan rápido y abran ventanas)
+├── 📁 css/               👉 El "Maquillaje" (Colores, tipos de letra, el logo y el diseño visual)
+│
+├── 📁 py.py/             👉 El "Cerebro Organizador" (Los scripts/robots que procesan y ordenan los datos)
+└── 📁 .github/           👉 Las "Instrucciones del Jefe" (Le dice a la nube a qué hora y cómo activar los robots)
