@@ -7,6 +7,11 @@ on:
     paths:
       - 'bitacora.csv'
 
+# Una sola ejecución a la vez: las demás esperan en cola
+concurrency:
+  group: actualizar-inventario
+  cancel-in-progress: false
+
 jobs:
   actualizar-csv:
     runs-on: ubuntu-latest
@@ -20,28 +25,27 @@ jobs:
       - name: Configurar Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.12'
 
-      - name: Ejecutar script de creación (Nuevos equipos)
-        run: python py.py/Nuevo.py
+      - name: Reconstruir inventarios desde la bitácora
+        run: python py.py/procesar.py
 
-      - name: Ejecutar script de actualización (Equipos existentes)
-        run: python py.py/actualizar.py
-
-      - name: Ejecutar script de eliminación (Eliminar equipos)
-        run: python py.py/eliminar.py
-
-      - name: Ejecutar script de devolución (Devolver a proveedor)
-        run: python py.py/Devolver.py
-
-      - name: Guardar inventarios en GitHub (Para la Web)
+      - name: Guardar inventarios en GitHub (para la web)
+        if: ${{ !cancelled() }}
         run: |
-          git config --global user.name "GitHub Actions Bot"
-          git config --global user.email "actions@github.com"
+          git config user.name "GitHub Actions Bot"
+          git config user.email "actions@github.com"
           git add Servialco/*.csv AYS-Servialco/*.csv UNICAT/*.csv ARKY/*.csv
-          git diff --quiet && git diff --staged --quiet || (git commit -m "🤖 Actualización automática de CSVs" && git push)
+          if git diff --staged --quiet; then
+            echo "Sin cambios en los inventarios"
+          else
+            git commit -m "🤖 Actualización automática de CSVs"
+            git pull --rebase origin main
+            git push
+          fi
 
       - name: Sincronizar Bitácora con Excel (Google Sheets)
+        if: ${{ !cancelled() }}
         env:
           GDRIVE_CREDENTIALS: ${{ secrets.GDRIVE_CREDENTIALS }}
         run: |
