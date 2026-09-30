@@ -1,67 +1,47 @@
-# Inventario-Servialco
-# 💻 Sistema de Gestión de Inventario TI (GitOps Architecture)
+# 📦 Sistema de Inventario Activo Fijos - Servialco
 
-Un sistema web modular, ligero y descentralizado para la administración, rastreo y trazabilidad de activos de TI (computadores, portátiles y monitores) en tiempo real, alojado completamente en GitHub Pages y automatizado mediante GitHub Actions.
+Este es un sistema de gestión de inventarios web dinámico e integrado, diseñado para administrar los activos fijos y equipos de Servialco SAS y sus distintos módulos (AYS, UNICAT, ARKY). 
 
----
+El sistema utiliza una arquitectura *Serverless* que combina una interfaz frontend ligera (HTML/JS) con un backend seguro desplegado en Vercel, el cual sincroniza los datos directamente con GitHub y Google Sheets.
 
 ## 🚀 Características Principales
 
-* **Arquitectura Modular por Proveedores:**
-  * 🏢 **SERVIALCO:** Gestión exclusiva de equipos propios.
-  * 🏢 **AYS:** Gestión de equipos alquilados (Servialco / Construsalco) con filtrado por serial del proveedor.
-  * 🏢 **UNICAT:** Control de activos alquilados a Unicat.
-  * 🏢 **ARKY:** Control de activos alquilados a Arky.
-* **Visor Global de Consulta Unificada:** Una pantalla central (`index.html`) que integra automáticamente los datos de todos los módulos en tiempo real para facilitar auditorías y búsquedas mediante pestañas dinámicas sin riesgo de modificar la base de datos.
-* **Trazabilidad e Historial (`bitacora.csv`):** Cada evento (nuevo, cambio de responsable, mantenimiento, devolución o eliminación) queda registrado cronológicamente con su fecha y responsable.
-* **Sincronización en Vivo y Validaciones Estrictas:** Al registrar un cambio desde la interfaz web, el sistema valida que los seriales existan (o no se dupliquen) antes de conectarse a la API de GitHub, actualizando la página instantánea y silenciosamente sin alertas molestas.
-* **Backend Separado (Responsabilidad Única):** Lógica procesada en Python puro y dividida por tipo de evento (`Nuevo.py`, `actualizar.py`, `eliminar.py`, `Devolver.py`) para evitar corrupción de datos.
-* **Sincronización con la Nube:** Integración mediante API con Google Cloud y `gspread` para mantener una copia de respaldo automática de la bitácora en Google Sheets.
+*   **Visor Global Integrado (`index.html`):** Panel unificado que consolida todos los activos de la empresa en una sola vista, permitiendo filtrar por empresa, estado o realizar búsquedas globales.
+*   **Módulos Independientes:** Vistas especializadas para cada proveedor o subdivisión (Servialco, AYS, UNICAT, ARKY) para una gestión aislada y enfocada.
+*   **Gestión Documental Conforme:** Interfaz adaptada a la norma de la empresa (CÓDIGO: GT.FO.01).
+*   **Trazabilidad Completa (Bitácora):** Cada equipo cuenta con un historial detallado de eventos (Asignación, Cambio de Responsable, Devoluciones a proveedor, Soporte técnico, etc.).
+*   **Creación Dinámica de Activos:** Formularios inteligentes que adaptan sus campos (Nombre, Tipo, Marca, Propiedad) al vuelo dependiendo del tipo de evento seleccionado.
+*   **Backend Seguro en Vercel:** Comunicación cifrada y protección de credenciales. La interfaz web no expone ningún Token de GitHub.
+*   **Sincronización Automática con Excel:** Mediante GitHub Actions y la librería `gspread`, todos los cambios realizados en la web se respaldan en documentos de Google Sheets de manera autónoma.
+
+## 🏗️ Arquitectura del Sistema
+
+1.  **Frontend (UI/UX):** 
+    *   HTML5 y CSS puro para los componentes visuales.
+    *   `js/ui.js`: Controla el DOM, los modales de interacción y el comportamiento de visibilidad condicional de los formularios de registro de equipos.
+    *   `js/api.js`: Motor de comunicación. Intercepta las solicitudes del usuario y se comunica con la API Serverless para inyectar actualizaciones optimistas en la interfaz.
+2.  **API Segura (Serverless):**
+    *   `api/github.js`: Función desplegada en Vercel que protege el Token Personal de GitHub (`GH_TOKEN`). Recibe las peticiones JSON de `api.js` y ejecuta los commits (vía `PUT`) contra el archivo `bitacora.csv`.
+3.  **Backend / Automatización (GitHub Actions):**
+    *   `.github/workflows/actualizar.yml`: Flujo de trabajo que se dispara al detectar un cambio en `bitacora.csv`.
+    *   `py.py/Nuevo.py`: Script maestro en Python. Procesa cronológicamente la bitácora para actualizar, crear o dar de baja equipos en los archivos CSV individuales de cada módulo (`servialco.csv`, `ays.csv`, etc.).
+    *   Sincronizador de Google Sheets: Script en Python (`actualizar_sheet.py`) que toma la versión final procesada de los inventarios y actualiza la nube de Google Drive usando credenciales de servicio.
+
+## 🛠️ Despliegue y Configuración
+
+El proyecto está diseñado para funcionar en GitHub Pages (para el frontend) y Vercel (para la API proxy).
+
+### 1. Variables de Entorno (Vercel)
+Para que el puente entre la web y GitHub funcione, es necesario configurar en Vercel el entorno:
+*   `GH_TOKEN`: Token de Acceso Personal (PAT) de GitHub con permisos de escritura (repo).
+
+### 2. Secretos de Acción (GitHub Actions)
+Para el respaldo en Google Sheets:
+*   `GDRIVE_CREDENTIALS`: Contenido JSON de la cuenta de servicio de Google Cloud Platform con permisos sobre el documento de cálculo de destino.
+
+## ⚙️ Prevención de Caché (Cache Busting)
+
+Debido a que este es un sistema donde la información visual se actualiza agresivamente mediante JavaScript, todas las referencias a los scripts en los archivos HTML (`api.js` y `ui.js`) utilizan un parámetro de versión (`?v=XX`). Esto asegura que cuando se realice un despliegue con mejoras en el código, todos los navegadores de los usuarios finales descarguen la versión más reciente, previniendo errores de visualización de datos.
 
 ---
-
-## 🛠️ Estructura del Repositorio
-
-El proyecto sigue una estructura limpia, separando la interfaz visual (Frontend) de la lógica de negocio (Backend en Python) y las bases de datos locales (CSV) de cada proveedor:
-
-```text
-Inventario-Servialco/
-│
-├── .github/
-│   └── workflows/
-│       └── actualizar.yml         # Workflow automatizado que orquesta los scripts Python
-│
-├── Servialco/
-│   ├── servialco.html             # Módulo visual Servialco (Propios)
-│   └── servialco.csv              # Base de datos de equipos propios
-│
-├── AYS-Servialco/
-│   ├── ays-servialco.html         # Módulo visual AYS
-│   └── ays-servialco.csv          # Base de datos de equipos AYS
-│
-├── UNICAT/
-│   ├── unicat.html                # Módulo visual UNICAT
-│   └── unicat.csv                 # Base de datos de equipos UNICAT
-│
-├── ARKY/
-│   ├── arky.html                  # Módulo visual ARKY
-│   └── arky.csv                   # Base de datos de equipos ARKY
-│
-├── css/
-│   └── style.css                  # Hoja de estilos centralizada para toda la aplicación
-│
-├── js/
-│   ├── api.js                     # Comunicación con GitHub API y validaciones de datos
-│   └── ui.js                      # Interfaz gráfica, dibujado de tablas y modales
-│
-├── py.py/                         # Backend: Scripts de procesamiento por evento
-│   ├── Nuevo.py                   # Lógica para la creación de nuevos equipos
-│   ├── actualizar.py              # Lógica para actualización de responsables y estados
-│   ├── eliminar.py                # Lógica para retirar permanentemente un equipo
-│   ├── Devolver.py                # Lógica para retirar equipos y marcarlos como devueltos
-│   └── actualizar_sheet.py        # Conector API para respaldar la bitácora en Google Sheets
-│
-├── index.html                     # Visor global de consulta unificada (Front page)
-├── bitacora.csv                   # Registro maestro de trazabilidad e historial general
-├── logo-servialco.png             # Logotipo corporativo
-└── README.md                      # Documentación del proyecto
+*Desarrollado para Servialco SAS. 2025.*
